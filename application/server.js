@@ -13,7 +13,8 @@ const hapi = require('hapi'),
 const server = new hapi.Server();
 
 let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION_PORT : 3000;
-let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : server.info.host;
+// let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : server.info.host;
+let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : 'localhost:3000';
 server.connection({
   port: port
 });
@@ -41,7 +42,7 @@ let plugins = [
     options: {
       host: host,
       info: {
-        title: 'Example API',
+        title: 'Activity Management  API',
         description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
         version: '0.1.0'
       }

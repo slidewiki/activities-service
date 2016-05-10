@@ -1,5 +1,5 @@
 #!/bin/bash
 
-docker build -t slidewiki/microservicetemplate ./
+docker build -t slidewiki/activityservice ./
 docker rmi $(docker images | grep "<none>" | awk "{print \$3}")
-docker push slidewiki/microservicetemplate
+docker push slidewiki/activityservice

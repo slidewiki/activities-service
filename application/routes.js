@@ -8,11 +8,11 @@ const Joi = require('joi'),
   handlers = require('./controllers/handler');
 
 module.exports = function(server) {
-  //Get slide with id id from database and return it (when not available, return NOT FOUND). Validate id
+  //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
     method: 'GET',
-    path: '/slide/{id}',
-    handler: handlers.getSlide,
+    path: '/activities/{id}',
+    handler: handlers.getActivities,
     config: {
       validate: {
         params: {
@@ -20,56 +20,97 @@ module.exports = function(server) {
         },
       },
       tags: ['api'],
-      description: 'Get a slide'
+      description: 'Get a list of activities (example id: 112233445566778899000671)'
+      // description: 'Get a list of activities (example id: 112233445566778899000671; id:000000000000000000000000 recreates mockup data)'
     }
   });
 
-  //Create new slide (by payload) and return it (...). Validate payload
+  //Get activity with id id from database and return it (when not available, return NOT FOUND). Validate id
+  server.route({
+    method: 'GET',
+    path: '/activity/{id}',
+    handler: handlers.getActivity,
+    config: {
+      validate: {
+        params: {
+          id: Joi.string().alphanum().lowercase()
+        },
+      },
+      tags: ['api'],
+      description: 'Get the activity'
+    }
+  });
+
+  //Create new activity (by payload) and return it (...). Validate payload
   server.route({
     method: 'POST',
-    path: '/slide/new',
-    handler: handlers.newSlide,
+    path: '/activity/new',
+    handler: handlers.newActivity,
     config: {
       validate: {
         payload: Joi.object().keys({
-          title: Joi.string(),
-          body: Joi.string(),
+          activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
-          root_deck_id: Joi.string().alphanum().lowercase(),
-          parent_deck_id: Joi.string().alphanum().lowercase(),
-          no_new_revision: Joi.boolean(),
-          position: Joi.number().integer().min(0),
-          language: Joi.string()
-        }).requiredKeys('title', 'body'),
+          content_id: Joi.string().alphanum().lowercase(),
+          content_kind: Joi.string().valid('deck', 'slide')
+        }).requiredKeys('content_id', 'user_id', 'activity_type'),
       },
       tags: ['api'],
-      description: 'Create a new slide'
+      description: 'Create a new activity'
     }
   });
 
-  //Update slide with id id (by payload) and return it (...). Validate payload
+  //Update activity with id id (by payload) and return it (...). Validate payload
   server.route({
     method: 'PUT',
-    path: '/slide/{id}',
-    handler: handlers.replaceSlide,
+    path: '/activity/{id}',
+    handler: handlers.updateActivity,
     config: {
       validate: {
         params: {
           id: Joi.string().alphanum().lowercase()
         },
         payload: Joi.object().keys({
-          title: Joi.string(),
-          body: Joi.string(),
+          activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
-          root_deck_id: Joi.string().alphanum().lowercase(),
-          parent_deck_id: Joi.string().alphanum().lowercase(),
-          no_new_revision: Joi.boolean(),
-          position: Joi.number().integer().min(0),
-          language: Joi.string()
-        }).requiredKeys('title', 'body'),
+          content_id: Joi.string().alphanum().lowercase(),
+          content_kind: Joi.string().valid('deck', 'slide')
+        }).requiredKeys('content_id', 'user_id', 'activity_type'),
       },
       tags: ['api'],
-      description: 'Replace a slide'
+      description: 'Replace an activity'
+    }
+  });
+
+  //Delete activity with id id (by payload). Validate payload
+  server.route({
+    method: 'DELETE',
+    path: '/activity/delete',
+    handler: handlers.deleteActivity,
+    config: {
+      validate: {
+        payload: {
+          id: Joi.string().alphanum().lowercase()
+        },
+      },
+      tags: ['api'],
+      description: 'Delete an activity'
+    }
+  });
+
+  //Delete activities with content id id (by payload). Validate payload
+  server.route({
+    method: 'DELETE',
+    path: '/activities/delete',
+    handler: handlers.deleteActivities,
+    config: {
+      validate: {
+        payload: {
+          content_id: Joi.string().alphanum().lowercase()
+        },
+      },
+      tags: ['api'],
+      description: 'Delete all activities for the content (example id: 112233445566778899000671)'
     }
   });
 };
