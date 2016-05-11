@@ -36,20 +36,20 @@ const activity = {
         type: 'string'
       }
     },
-    // share_info: {
-    //   postURI: {
-    //     type: 'string'
-    //   },
-    //   platform: {
-    //     type: 'string'
-    //   }
-    // },
-    // comment_info: {
-    //   id: objectid,
-    //   text: {
-    //     type: 'string'
-    //   }
-    // },
+    share_info: {
+      postURI: {
+        type: 'string'
+      },
+      platform: {
+        type: 'string'
+      }
+    },
+    comment_info: {
+      comment_id: objectid,
+      text: {
+        type: 'string'
+      }
+    },
     use_info: {
       target_id: objectid,
       target_name: {
