@@ -1,7 +1,7 @@
 {
   "name": "activities-service",
   "version": "0.1.0",
-  "description": "This service handles activities stream management for slidewiki.",
+  "description": "This service handles activity stream management for slidewiki.",
   "repository": {
     "type": "git",
     "url": "https://github.com/slidewiki/activities-service"
