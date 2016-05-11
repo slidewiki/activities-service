@@ -5,13 +5,13 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 'use strict';
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
-  activityDB = require('../database/activityDatabase'), //Database functions specific for activities
+  activitiesDB = require('../database/activitiesDatabase'), //Database functions specific for activities
   co = require('../common');
 
 module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
-    activityDB.get(encodeURIComponent(request.params.id)).then((activity) => {
+    activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
       if (co.isEmpty(activity))
         reply(boom.notFound());
       else {
@@ -27,7 +27,7 @@ module.exports = {
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
-    activityDB.insert(request.payload).then((inserted) => {
+    activitiesDB.insert(request.payload).then((inserted) => {
       //console.log('inserted: ', inserted);
       if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
         throw inserted;
@@ -43,7 +43,7 @@ module.exports = {
 
   //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
   updateActivity: function(request, reply) {
-    activityDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
+    activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
       //console.log('updated: ', replaced);
       if (co.isEmpty(replaced.value))
         throw replaced;
@@ -57,7 +57,7 @@ module.exports = {
 
   //Delete Activity with id id
   deleteActivity: function(request, reply) {
-    activityDB.delete(encodeURIComponent(request.payload.id)).then(() =>
+    activitiesDB.delete(encodeURIComponent(request.payload.id)).then(() =>
       reply({'msg': 'activity is successfully deleted...'})
     ).catch((error) => {
       request.log('error', error);
@@ -67,7 +67,7 @@ module.exports = {
 
   //Delete Activities with content id id
   deleteActivities: function(request, reply) {
-    activityDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
+    activitiesDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
       reply({'msg': 'activities are successfully deleted...'})
     ).catch((error) => {
       request.log('error', error);
@@ -77,7 +77,7 @@ module.exports = {
 
   //Get All Activities from database for the id in the request, limited by the number of documents
   getActivitiesLimited: function(request, reply) {
-    activityDB.getAll(encodeURIComponent(request.params.id))
+    activitiesDB.getAll(encodeURIComponent(request.params.id))
       .then((activities) => {
 
         //limit the resuls
@@ -107,7 +107,7 @@ module.exports = {
   getActivities: function(request, reply) {
     //Clean collection and insert mockup activities - only if request.params.id === 0
     initMockupData(request.params.id)
-      .then(() => activityDB.getAll(encodeURIComponent(request.params.id))
+      .then(() => activitiesDB.getAll(encodeURIComponent(request.params.id))
       .then((activities) => {
         activities.forEach((activity) => {
           co.rewriteID(activity);
@@ -132,8 +132,8 @@ module.exports = {
 //Delete all and insert mockup data
 function initMockupData(identifier) {
   if (identifier === '000000000000000000000000') {//create collection, delete all and insert mockup data only if the user has explicitly sent 000000000000000000000000
-    return activityDB.createCollection()
-      .then(() => activityDB.deleteAll())
+    return activitiesDB.createCollection()
+      .then(() => activitiesDB.deleteAll())
       .then(() => insertMockupData());
   }
   return new Promise((resolve) => {resolve (1);});
@@ -148,7 +148,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000004'
   };
-  let ins1 = activityDB.insert(activity1);
+  let ins1 = activitiesDB.insert(activity1);
   let activity2 = {
     activity_type: 'edit',
     content_id: '112233445566778899000067',
@@ -156,7 +156,7 @@ function insertMockupData() {
     content_name: 'RDF Data Model',
     user_id: '112233445566778899000002'
   };
-  let ins2 = ins1.then(() => activityDB.insert(activity2));
+  let ins2 = ins1.then(() => activitiesDB.insert(activity2));
   let activity3 = {
     activity_type: 'translate',
     content_id: '112233445566778899000671',
@@ -168,7 +168,7 @@ function insertMockupData() {
       language: 'Serbian'
     }
   };
-  let ins3 = ins2.then(() => activityDB.insert(activity3));
+  let ins3 = ins2.then(() => activitiesDB.insert(activity3));
   let activity4 = {
     activity_type: 'translate',
     content_id: '112233445566778899000671',
@@ -180,7 +180,7 @@ function insertMockupData() {
       language: 'Bosnian'
     }
   };
-  let ins4 = ins3.then(() => activityDB.insert(activity4));
+  let ins4 = ins3.then(() => activitiesDB.insert(activity4));
   let activity5 = {
     activity_type: 'translate',
     content_id: '112233445566778899000671',
@@ -192,7 +192,7 @@ function insertMockupData() {
       language: 'Croatian'
     }
   };
-  let ins5 = ins4.then(() => activityDB.insert(activity5));
+  let ins5 = ins4.then(() => activitiesDB.insert(activity5));
   let activity6 = {
     activity_type: 'share',
     content_id: '112233445566778899000067',
@@ -204,7 +204,7 @@ function insertMockupData() {
       platform: 'Facebook'
     }
   };
-  let ins6 = ins5.then(() => activityDB.insert(activity6));
+  let ins6 = ins5.then(() => activitiesDB.insert(activity6));
   let activity7 = {
     activity_type: 'comment',
     content_id: '112233445566778899000671',
@@ -216,7 +216,7 @@ function insertMockupData() {
       text: 'Awesome!'
     }
   };
-  let ins7 = ins6.then(() => activityDB.insert(activity7));
+  let ins7 = ins6.then(() => activitiesDB.insert(activity7));
   let activity8 = {
     activity_type: 'comment',
     content_id: '112233445566778899000671',
@@ -228,7 +228,7 @@ function insertMockupData() {
       text: 'Indeed'
     }
   };
-  let ins8 = ins7.then(() => activityDB.insert(activity8));
+  let ins8 = ins7.then(() => activitiesDB.insert(activity8));
   let activity9 = {
     activity_type: 'use',
     content_id: '112233445566778899000671',
@@ -240,7 +240,7 @@ function insertMockupData() {
       target_name: 'Slidewiki Introduction'
     }
   };
-  let ins9 = ins8.then(() => activityDB.insert(activity9));
+  let ins9 = ins8.then(() => activitiesDB.insert(activity9));
   let activity10 = {
     activity_type: 'react',
     content_id: '112233445566778899000671',
@@ -249,7 +249,7 @@ function insertMockupData() {
     user_id: '112233445566778899000001',
     react_type: 'like'
   };
-  let ins10 = ins9.then(() => activityDB.insert(activity10));
+  let ins10 = ins9.then(() => activitiesDB.insert(activity10));
   let activity10 = {
     activity_type: 'download',
     content_id: '112233445566778899000671',
@@ -257,7 +257,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001'
   };
-  let ins11 = ins10.then(() => activityDB.insert(activity11));
+  let ins11 = ins10.then(() => activitiesDB.insert(activity11));
 
   return ins11;
 }

@@ -1,12 +1,12 @@
 {
-  "name": "activity-service",
+  "name": "activities-service",
   "version": "0.1.0",
-  "description": "This service handles activity stream management for slidewiki.",
+  "description": "This service handles activities stream management for slidewiki.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/slidewiki/activity-service"
+    "url": "https://github.com/slidewiki/activities-service"
   },
-  "bugs": "https://github.com/slidewiki/activity-service/issues",
+  "bugs": "https://github.com/slidewiki/activities-service/issues",
   "author": "Dejan Paunovic",
   "license": "MPL-2.0",
   "main": "server.js",

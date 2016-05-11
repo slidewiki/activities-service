@@ -15,7 +15,7 @@ describe('Database', () => {
     let chaiAsPromised = require('chai-as-promised');
     chai.use(chaiAsPromised);
     //expect = require('chai').expect;
-    db = require('../database/activityDatabase.js');
+    db = require('../database/activitiesDatabase.js');
     helper = require('../database/helper.js');
     helper.cleanDatabase()
       .then(() => done())
