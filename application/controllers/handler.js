@@ -75,6 +75,34 @@ module.exports = {
     });
   },
 
+  //Get All Activities from database for the id in the request, limited by the number of documents
+  getActivitiesLimited: function(request, reply) {
+    activityDB.getAll(encodeURIComponent(request.params.id))
+      .then((activities) => {
+
+        //limit the resuls
+        const start = request.params.start;
+        const limit = request.params.limit;
+        let activitiesLimited = activities.slice(start, start + limit);
+        activitiesLimited.forEach((activity) => {
+          co.rewriteID(activity);
+        });
+
+        activitiesLimited.forEach((activity) => {
+          activity.author = authorsMap.get(activity.user_id);//insert author data
+        });
+
+        let jsonReply = JSON.stringify(activitiesLimited);
+        reply(jsonReply);
+
+      }).catch((error) => {
+        request.log('error', error);
+        reply(boom.badImplementation());
+      });
+
+      //TODO get activities for a deck (activities of all its decks and slides)
+  },
+
   //Get All Activities from database for the id in the request
   getActivities: function(request, reply) {
     //Clean collection and insert mockup activities - only if request.params.id === 0
@@ -84,9 +112,6 @@ module.exports = {
         activities.forEach((activity) => {
           co.rewriteID(activity);
         });
-
-        //sort by timestamp
-        activities.sort((activity1, activity2) => {return (activity2.timestamp - activity1.timestamp);});
 
         activities.forEach((activity) => {
           activity.author = authorsMap.get(activity.user_id);//insert author data
@@ -100,6 +125,7 @@ module.exports = {
         reply(boom.badImplementation());
       });
 
+      //TODO get activities for a deck (activities of all its decks and slides)
   }
 };
 
@@ -119,25 +145,121 @@ function insertMockupData() {
     activity_type: 'add',
     content_id: '112233445566778899000671',
     content_kind: 'slide',
-    user_id: '112233445566778899000001'
+    content_name: 'Introduction',
+    user_id: '112233445566778899000004'
   };
   let ins1 = activityDB.insert(activity1);
-
   let activity2 = {
     activity_type: 'edit',
-    content_id: '112233445566778899000671',
-    content_kind: 'slide',
-    user_id: '112233445566778899000004'
+    content_id: '112233445566778899000067',
+    content_kind: 'deck',
+    content_name: 'RDF Data Model',
+    user_id: '112233445566778899000002'
   };
   let ins2 = ins1.then(() => activityDB.insert(activity2));
   let activity3 = {
     activity_type: 'translate',
     content_id: '112233445566778899000671',
     content_kind: 'slide',
-    user_id: '112233445566778899000005'
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    translation_info: {
+      content_id: '42',
+      language: 'Serbian'
+    }
   };
   let ins3 = ins2.then(() => activityDB.insert(activity3));
-  return ins3;
+  let activity4 = {
+    activity_type: 'translate',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    translation_info: {
+      content_id: '43',
+      language: 'Bosnian'
+    }
+  };
+  let ins4 = ins3.then(() => activityDB.insert(activity4));
+  let activity5 = {
+    activity_type: 'translate',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    translation_info: {
+      content_id: '44',
+      language: 'Croatian'
+    }
+  };
+  let ins5 = ins4.then(() => activityDB.insert(activity5));
+  let activity6 = {
+    activity_type: 'share',
+    content_id: '112233445566778899000067',
+    content_kind: 'deck',
+    content_name: 'RDF Data Model',
+    user_id: '112233445566778899000001',
+    share_info: {
+      postURI: 'http://facebook.com',
+      platform: 'Facebook'
+    }
+  };
+  let ins6 = ins5.then(() => activityDB.insert(activity6));
+  let activity7 = {
+    activity_type: 'comment',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    comment_info: {
+      id: 42,
+      text: 'Awesome!'
+    }
+  };
+  let ins7 = ins6.then(() => activityDB.insert(activity7));
+  let activity8 = {
+    activity_type: 'comment',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    comment_info: {
+      id: 43,
+      text: 'Indeed'
+    }
+  };
+  let ins8 = ins7.then(() => activityDB.insert(activity8));
+  let activity9 = {
+    activity_type: 'use',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    use_info: {
+      target_id: 53,
+      target_name: 'Slidewiki Introduction'
+    }
+  };
+  let ins9 = ins8.then(() => activityDB.insert(activity9));
+  let activity10 = {
+    activity_type: 'react',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001',
+    react_type: 'like'
+  };
+  let ins10 = ins9.then(() => activityDB.insert(activity10));
+  let activity10 = {
+    activity_type: 'download',
+    content_id: '112233445566778899000671',
+    content_kind: 'slide',
+    content_name: 'Introduction',
+    user_id: '112233445566778899000001'
+  };
+  let ins11 = ins10.then(() => activityDB.insert(activity11));
+
+  return ins11;
 }
 
 let authorsMap = new Map([
@@ -158,7 +280,7 @@ let authorsMap = new Map([
   }],
   ['112233445566778899000004', {
     id: 10,
-    username: 'Marko B.',
+    username: 'Ali K.',
     avatar: '/assets/images/mock-avatars/ninja-simple_512.png'
   }],
   ['112233445566778899000005', {

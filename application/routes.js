@@ -20,8 +20,25 @@ module.exports = function(server) {
         },
       },
       tags: ['api'],
-      description: 'Get a list of activities (example id: 112233445566778899000671)'
-      // description: 'Get a list of activities (example id: 112233445566778899000671; id:000000000000000000000000 recreates mockup data)'
+      description: 'Get a list of activities (example id: 112233445566778899000671; id:000000000000000000000000 recreates mockup data)'
+    }
+  });
+
+  //Get limited number of activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
+  server.route({
+    method: 'GET',
+    path: '/activities/{id}/more/{start}/{limit}',
+    handler: handlers.getActivitiesLimited,
+    config: {
+      validate: {
+        params: {
+          id: Joi.string().alphanum().lowercase(),
+          start: Joi.number().integer().min(0),
+          limit: Joi.number().integer().min(1)
+        },
+      },
+      tags: ['api'],
+      description: 'Get a list of activities (example id: 112233445566778899000671; id:000000000000000000000000 recreates mockup data)'
     }
   });
 

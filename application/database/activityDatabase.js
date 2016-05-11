@@ -22,6 +22,7 @@ module.exports = {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
       .then((col) => col.find({ content_id: String(oid(identifier)) }))//TODO cast to String?
+      .then((stream) => stream.sort({timestamp: -1}))
       .then((stream) => stream.toArray());
   },
 

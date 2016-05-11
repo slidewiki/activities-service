@@ -19,7 +19,7 @@ const activity = {
   properties: {
     activity_type: {
       type: 'string',
-      enum: ['translate', 'share', 'add', 'edit', 'comment', 'reply', 'use', 'like', 'download']
+      enum: ['translate', 'share', 'add', 'edit', 'comment', 'reply', 'use', 'react', 'rate', 'download']
     },
     timestamp: {
       type: 'object'
@@ -30,10 +30,41 @@ const activity = {
       type: 'string',
       enum: ['deck', 'slide']
     },
+    translation_info: {
+      content_id: objectid,
+      language: {
+        type: 'string'
+      }
+    },
+    share_info: {
+      postURI: {
+        type: 'string'
+      },
+      platform: {
+        type: 'string'
+      }
+    },
+    comment_info: {
+      id: objectid,
+      text: {
+        type: 'string'
+      }
+    },
+    use_info: {
+      target_id: objectid,
+      target_name: {
+        type: 'string'
+      }
+    },
+    react_type: {
+      type: 'string'
+    },
+    rate_type:  {
+      type: 'string'
+    }
   },
   required: ['content_id', 'user_id', 'activity_type']
 };
-
 
 //export
 module.exports = ajv.compile(activity);
