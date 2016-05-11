@@ -250,7 +250,7 @@ function insertMockupData() {
     react_type: 'like'
   };
   let ins10 = ins9.then(() => activitiesDB.insert(activity10));
-  let activity10 = {
+  let activity11 = {
     activity_type: 'download',
     content_id: '112233445566778899000671',
     content_kind: 'slide',
