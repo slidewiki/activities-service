@@ -212,7 +212,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      id: 42,
+      id: '42',
       text: 'Awesome!'
     }
   };
@@ -224,7 +224,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      id: 43,
+      id: '43',
       text: 'Indeed'
     }
   };
@@ -236,7 +236,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     use_info: {
-      target_id: 53,
+      target_id: '53',
       target_name: 'Slidewiki Introduction'
     }
   };
