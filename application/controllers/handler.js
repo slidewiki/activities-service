@@ -84,17 +84,18 @@ module.exports = {
         const start = request.params.start;
         const limit = request.params.limit;
         let activitiesLimited = activities.slice(start, start + limit);
-        activitiesLimited.forEach((activity) => {
+        activities.forEach((activity) => {
           co.rewriteID(activity);
         });
 
-        activitiesLimited.forEach((activity) => {
+        activities.forEach((activity) => {
           activity.author = authorsMap.get(activity.user_id);//insert author data
         });
 
         //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
         if (start < 200) {
-          activitiesLimited.concat(addRandomActivities(activities, limit - activities.length));
+          let randomActivities = getRandomActivities(activities, limit - activitiesLimited.length);
+          activitiesLimited = activitiesLimited.concat(randomActivities);
         }
 
         let jsonReply = JSON.stringify(activitiesLimited);
@@ -123,6 +124,7 @@ module.exports = {
         });
 
         let jsonReply = JSON.stringify(activities);
+
         reply(jsonReply);
 
       })).catch((error) => {
@@ -144,15 +146,17 @@ function initMockupData(identifier) {
   return new Promise((resolve) => {resolve (1);});
 }
 
-function addRandomActivities(activities, numActivities) {
+function getRandomActivities(activities, numActivities) {
+
+  let randomActivities = [];
   for (let i=0; i<numActivities; i++) {
-    const randomIndex = Math.floor(Math.random()*1000) % 11;
+    const randomIndex = Math.floor(Math.random()*1000) % activities.length;
     let a = activities[randomIndex];
-    a.id = activities.length;
+    a.id = randomActivities.length;
     a.content_name = a.content_name + ' (random)';
-    activities.push(a);
+    randomActivities.push(a);
   }
-  return activities;
+  return randomActivities;
 }
 
 //Insert mockup data to the collection
