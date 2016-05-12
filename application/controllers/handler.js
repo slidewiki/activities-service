@@ -92,6 +92,11 @@ module.exports = {
           activity.author = authorsMap.get(activity.user_id);//insert author data
         });
 
+        //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
+        if (start < 200) {
+          activitiesLimited = addRandomActivities(activitiesLimited, limit - activitiesLimited.length);
+        }
+
         let jsonReply = JSON.stringify(activitiesLimited);
         reply(jsonReply);
 
@@ -137,6 +142,16 @@ function initMockupData(identifier) {
       .then(() => insertMockupData());
   }
   return new Promise((resolve) => {resolve (1);});
+}
+
+function addRandomActivities(activities, numActivities) {
+  for (let i=0; i<numActivities; i++) {
+    let a = activities[Math.floor(Math.random()*1000) % 11];
+    a.id = activities.length;
+    a.content_name = a.content_name + ' (random)';
+    activities.push(a);
+  }
+  return activities;
 }
 
 //Insert mockup data to the collection
@@ -212,7 +227,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      id: '42',
+      comment_id: '42',
       text: 'Awesome!'
     }
   };
@@ -224,7 +239,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      id: '43',
+      comment_id: '43',
       text: 'Indeed'
     }
   };

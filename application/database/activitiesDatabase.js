@@ -77,7 +77,6 @@ module.exports = {
   },
 
   deleteAllWithContentID: function(identifier) {
-    console.log(oid(identifier));
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
       .then((col) => col.remove({

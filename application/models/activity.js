@@ -30,6 +30,9 @@ const activity = {
       type: 'string',
       enum: ['deck', 'slide']
     },
+    content_name: {
+      type: 'string'
+    },
     translation_info: {
       content_id: objectid,
       language: {
