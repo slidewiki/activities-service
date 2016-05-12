@@ -227,7 +227,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      comment_id: '42',
+      comment_id: '112233445566778899000042',
       text: 'Awesome!'
     }
   };
@@ -239,7 +239,7 @@ function insertMockupData() {
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
     comment_info: {
-      comment_id: '43',
+      comment_id: '112233445566778899000043',
       text: 'Indeed'
     }
   };
