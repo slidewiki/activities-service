@@ -94,7 +94,7 @@ module.exports = {
 
         //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
         if (start < 200) {
-          activitiesLimited = addRandomActivities(activitiesLimited, limit - activitiesLimited.length);
+          activitiesLimited.concat(addRandomActivities(activities, limit - activities.length));
         }
 
         let jsonReply = JSON.stringify(activitiesLimited);
@@ -146,7 +146,8 @@ function initMockupData(identifier) {
 
 function addRandomActivities(activities, numActivities) {
   for (let i=0; i<numActivities; i++) {
-    let a = activities[Math.floor(Math.random()*1000) % 11];
+    const randomIndex = Math.floor(Math.random()*1000) % 11;
+    let a = activities[randomIndex];
     a.id = activities.length;
     a.content_name = a.content_name + ' (random)';
     activities.push(a);
