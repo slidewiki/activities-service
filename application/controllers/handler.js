@@ -296,7 +296,7 @@ let authorsMap = new Map([
   }],
   ['112233445566778899000004', {
     id: 10,
-    username: 'Ali K.',
+    username: 'Marko B.',
     avatar: '/assets/images/mock-avatars/ninja-simple_512.png'
   }],
   ['112233445566778899000005', {
