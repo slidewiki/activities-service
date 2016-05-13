@@ -86,9 +86,7 @@ module.exports = {
         let activitiesLimited = activities.slice(start, start + limit);
         activities.forEach((activity) => {
           co.rewriteID(activity);
-        });
 
-        activities.forEach((activity) => {
           activity.author = authorsMap.get(activity.user_id);//insert author data
         });
 
@@ -117,15 +115,38 @@ module.exports = {
       .then((activities) => {
         activities.forEach((activity) => {
           co.rewriteID(activity);
-        });
 
-        activities.forEach((activity) => {
           activity.author = authorsMap.get(activity.user_id);//insert author data
         });
 
         let jsonReply = JSON.stringify(activities);
 
         reply(jsonReply);
+
+      }).then(() => {
+
+
+
+
+
+
+
+        let http = require('http');
+        // http.get('http://www.google.com/index.html', (res) => {
+        http.get('http://activitiesservice.manfredfris.ch/documentation', (res) => {
+
+          console.log(`Got response: ${res.statusCode}`);
+          // consume response body
+          res.resume();
+        }).on('error', (e) => {
+          console.log(`Got error: ${e.message}`);
+        });
+
+
+
+
+
+
 
       })).catch((error) => {
         request.log('error', error);
@@ -151,7 +172,7 @@ function getRandomActivities(activities, numActivities) {
   let randomActivities = [];
   for (let i=0; i<numActivities; i++) {
     const randomIndex = Math.floor(Math.random()*1000) % activities.length;
-    let a = activities[randomIndex];
+    let a = JSON.parse(JSON.stringify(activities[randomIndex]));//clone it
     a.id = randomActivities.length;
     a.content_name = a.content_name + ' (random)';
     randomActivities.push(a);
