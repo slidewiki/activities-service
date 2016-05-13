@@ -69,7 +69,26 @@ module.exports = function(server) {
           activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
           content_id: Joi.string().alphanum().lowercase(),
-          content_kind: Joi.string().valid('deck', 'slide')
+          content_kind: Joi.string().valid('deck', 'slide'),
+          content_name: Joi.string(),
+          translation_info: Joi.object().keys({
+            content_id: Joi.string().alphanum().lowercase(),
+            language: Joi.string()
+          }),
+          share_info: Joi.object().keys({
+            postURI: Joi.string(),
+            platform: Joi.string()
+          }),
+          comment_info: Joi.object().keys({
+            comment_id: Joi.string().alphanum().lowercase(),
+            text: Joi.string()
+          }),
+          use_info: Joi.object().keys({
+            target_id: Joi.string().alphanum().lowercase(),
+            target_name: Joi.string()
+          }),
+          react_type: Joi.string(),
+          rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type'),
       },
       tags: ['api'],
@@ -91,7 +110,26 @@ module.exports = function(server) {
           activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
           content_id: Joi.string().alphanum().lowercase(),
-          content_kind: Joi.string().valid('deck', 'slide')
+          content_kind: Joi.string().valid('deck', 'slide'),
+          content_name: Joi.string(),
+          translation_info: Joi.object().keys({
+            content_id: Joi.string().alphanum().lowercase(),
+            language: Joi.string()
+          }),
+          share_info: Joi.object().keys({
+            postURI: Joi.string(),
+            platform: Joi.string()
+          }),
+          comment_info: Joi.object().keys({
+            comment_id: Joi.string().alphanum().lowercase(),
+            text: Joi.string()
+          }),
+          use_info: Joi.object().keys({
+            target_id: Joi.string().alphanum().lowercase(),
+            target_name: Joi.string()
+          }),
+          react_type: Joi.string(),
+          rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type'),
       },
       tags: ['api'],

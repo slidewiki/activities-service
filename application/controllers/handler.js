@@ -123,31 +123,6 @@ module.exports = {
 
         reply(jsonReply);
 
-      }).then(() => {
-
-
-
-
-
-
-
-        let http = require('http');
-        // http.get('http://www.google.com/index.html', (res) => {
-        http.get('http://activitiesservice.manfredfris.ch/documentation', (res) => {
-
-          console.log(`Got response: ${res.statusCode}`);
-          // consume response body
-          res.resume();
-        }).on('error', (e) => {
-          console.log(`Got error: ${e.message}`);
-        });
-
-
-
-
-
-
-
       })).catch((error) => {
         request.log('error', error);
         reply(boom.badImplementation());
@@ -259,7 +234,7 @@ function insertMockupData() {
   };
   let ins7 = ins6.then(() => activitiesDB.insert(activity7));
   let activity8 = {
-    activity_type: 'comment',
+    activity_type: 'reply',
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
