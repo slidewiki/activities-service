@@ -16,6 +16,9 @@ module.exports = {
         reply(boom.notFound());
       else {
         activity.author = authorsMap.get(activity.user_id);//insert author data
+        if (activity.author === undefined) {
+          activity.author = authorsMap.get('1122334455667788990vader');
+        }
         reply(co.rewriteID(activity));
       }
     }).catch((error) => {
@@ -308,5 +311,10 @@ let authorsMap = new Map([
     id: 12,
     username: 'SlideWiki FTW',
     avatar: '/assets/images/mock-avatars/spooky_256.png'
+  }],
+  ['112233445566778899000000', {
+    id: 13,
+    username: 'Dutch',
+    avatar: '/assets/images/mock-avatars/dgirl.jpeg'
   }]
 ]);
