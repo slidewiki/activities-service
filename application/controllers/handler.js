@@ -17,7 +17,7 @@ module.exports = {
       else {
         activity.author = authorsMap.get(activity.user_id);//insert author data
         if (activity.author === undefined) {
-          activity.author = authorsMap.get('1122334455667788990vader');
+          activity.author = authorsMap.get('112233445566778899000000');
         }
         reply(co.rewriteID(activity));
       }
