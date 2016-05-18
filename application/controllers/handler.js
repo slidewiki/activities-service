@@ -80,7 +80,8 @@ module.exports = {
 
   //Get All Activities from database for the id in the request, limited by the number of documents
   getActivitiesLimited: function(request, reply) {
-    activitiesDB.getAll(encodeURIComponent(request.params.id))
+    activitiesDB.getAllFromCollection()//TODO call getAll(identifier)
+    // activitiesDB.getAll(encodeURIComponent(request.params.id))
       .then((activities) => {
 
         //limit the resuls
