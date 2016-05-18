@@ -27,7 +27,7 @@ module.exports = function(server) {
   //Get all activities from database and return the entire list (when not available, return NOT FOUND).
   server.route({
     method: 'GET',
-    path: '/allactivities',
+    path: '/activities/all',
     handler: handlers.getAllActivities,
     config: {
       tags: ['api'],
