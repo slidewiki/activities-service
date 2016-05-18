@@ -32,7 +32,7 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
-        user_id: '112233445566778899001213'
+        user_id: '000000000000000000000000'
       };
       let res = db.insert(activity);
       return Promise.all([
@@ -48,7 +48,7 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
-        user_id: '112233445566778899001213'
+        user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
       let res = ins.then((ins) => db.get(ins.ops[0]._id));
@@ -64,13 +64,13 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
-        user_id: '112233445566778899001213'
+        user_id: '000000000000000000000000'
       };
       let activity2 = {
         activity_type: 'share',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
-        user_id: '112233445566778899001213'
+        user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
       let res = ins.then((ins) => db.replace(ins.ops[0]._id, activity2));
