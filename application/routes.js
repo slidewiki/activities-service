@@ -24,6 +24,17 @@ module.exports = function(server) {
     }
   });
 
+  //Get all activities from database and return the entire list (when not available, return NOT FOUND).
+  server.route({
+    method: 'GET',
+    path: '/allactivities',
+    handler: handlers.getAllActivities,
+    config: {
+      tags: ['api'],
+      description: 'Get a list of all activities'
+    }
+  });
+
   //Get limited number of activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
     method: 'GET',

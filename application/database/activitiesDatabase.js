@@ -21,8 +21,15 @@ module.exports = {
   getAll: function(identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find())//TODO use id TODO cast to String?
-      // .then((col) => col.find({ content_id: String(oid(identifier)) }))//TODO use id TODO cast to String?
+      .then((col) => col.find({ content_id: String(oid(identifier)) }))//TODO use id TODO cast to String?
+      .then((stream) => stream.sort({timestamp: -1}))
+      .then((stream) => stream.toArray());
+  },
+
+  getAllFromCollection: function() {
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.find())
       .then((stream) => stream.sort({timestamp: -1}))
       .then((stream) => stream.toArray());
   },

@@ -114,16 +114,15 @@ module.exports = {
   getActivities: function(request, reply) {
     //Clean collection and insert mockup activities - only if request.params.id === 0
     initMockupData(request.params.id)
-      .then(() => activitiesDB.getAll(encodeURIComponent(request.params.id))
+      .then(() => activitiesDB.getAllFromCollection()//TODO call getAll(identifier)
+      // .then(() => activitiesDB.getAll(encodeURIComponent(request.params.id))
       .then((activities) => {
         activities.forEach((activity) => {
           co.rewriteID(activity);
-
           activity.author = authorsMap.get(activity.user_id);//insert author data
         });
 
         let jsonReply = JSON.stringify(activities);
-
         reply(jsonReply);
 
       })).catch((error) => {
@@ -132,6 +131,24 @@ module.exports = {
       });
 
       //TODO get activities for a deck (activities of all its decks and slides)
+  },
+
+  //Get All Activities from database
+  getAllActivities: function(request, reply) {
+    activitiesDB.getAllFromCollection()
+      .then((activities) => {
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          activity.author = authorsMap.get(activity.user_id);//insert author data
+        });
+
+        let jsonReply = JSON.stringify(activities);
+        reply(jsonReply);
+
+      }).catch((error) => {
+        request.log('error', error);
+        reply(boom.badImplementation());
+      });
   }
 };
 
