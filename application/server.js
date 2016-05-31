@@ -17,8 +17,9 @@ let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION
 server.connection({
   port: port
 });
-// let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : 'localhost:3000';
-let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : server.info.host;
+//CHANGES FOR LOCALHOST
+let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : 'localhost:3000';
+// let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : server.info.host;
 
 //Export the webserver to be able to use server.log()
 module.exports = server;

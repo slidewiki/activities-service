@@ -80,19 +80,15 @@ module.exports = {
 
   //Get All Activities from database for the id in the request, limited by the number of documents
   getActivitiesLimited: function(request, reply) {
-    activitiesDB.getAllFromCollection()//TODO call getAll(identifier)
-    // activitiesDB.getAll(encodeURIComponent(request.params.id))
+    activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
+    // activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
       .then((activities) => {
 
         //limit the resuls
         const start = request.params.start;
         const limit = request.params.limit;
         let activitiesLimited = activities.slice(start, start + limit);
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-
-          activity.author = authorsMap.get(activity.user_id);//insert author data
-        });
+        insertAuthorData(activities);
 
         //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
         if (start < 200) {
@@ -115,13 +111,10 @@ module.exports = {
   getActivities: function(request, reply) {
     //Clean collection and insert mockup activities - only if request.params.id === 0
     initMockupData(request.params.id)
-      .then(() => activitiesDB.getAllFromCollection()//TODO call getAll(identifier)
-      // .then(() => activitiesDB.getAll(encodeURIComponent(request.params.id))
+      .then(() => activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
+      // .then(() => activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
       .then((activities) => {
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          activity.author = authorsMap.get(activity.user_id);//insert author data
-        });
+        insertAuthorData(activities);
 
         let jsonReply = JSON.stringify(activities);
         reply(jsonReply);
@@ -134,14 +127,43 @@ module.exports = {
       //TODO get activities for a deck (activities of all its decks and slides)
   },
 
+  //Get All Activities from database for subscriptions in the request
+  getActivitiesSubscribed: function(request, reply) {
+    const subscriptions = request.params.subscriptions.split('/');
+    let userIdArray = [];
+    let slideIdArray = [];
+    let deckIdArray = [];
+    let idArray = [];
+    subscriptions.forEach((subscription) => {
+      if (subscription.startsWith('u')) {
+        userIdArray.push(subscription.substring(1));
+      } else if (subscription.startsWith('s')) {
+        slideIdArray.push(subscription.substring(1));
+      } else if (subscription.startsWith('d')) {
+        deckIdArray.push(subscription.substring(1));
+      } else if (subscription.startsWith('i')) {
+        idArray.push(subscription.substring(1));
+      }
+    });
+
+    activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray)
+      .then((activities) => {
+        insertAuthorData(activities);
+
+        let jsonReply = JSON.stringify(activities);
+        reply(jsonReply);
+
+      }).catch((error) => {
+        request.log('error', error);
+        reply(boom.badImplementation());
+      });
+  },
+
   //Get All Activities from database
   getAllActivities: function(request, reply) {
     activitiesDB.getAllFromCollection()
       .then((activities) => {
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          activity.author = authorsMap.get(activity.user_id);//insert author data
-        });
+        insertAuthorData(activities);
 
         let jsonReply = JSON.stringify(activities);
         reply(jsonReply);
@@ -176,6 +198,13 @@ function getRandomActivities(activities, numActivities) {
   return randomActivities;
 }
 
+function insertAuthorData(activities) {
+  activities.forEach((activity) => {
+    co.rewriteID(activity);
+    activity.author = authorsMap.get(activity.user_id);//insert author data
+  });
+}
+
 //Insert mockup data to the collection
 function insertMockupData() {
   let activity1 = {
@@ -199,7 +228,7 @@ function insertMockupData() {
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
-    user_id: '112233445566778899000001',
+    user_id: '112233445566778899000002',
     translation_info: {
       content_id: '42',
       language: 'Serbian'
@@ -247,7 +276,7 @@ function insertMockupData() {
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
-    user_id: '112233445566778899000001',
+    user_id: '112233445566778899000003',
     comment_info: {
       comment_id: '112233445566778899000042',
       text: 'Awesome!'
@@ -259,7 +288,7 @@ function insertMockupData() {
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
-    user_id: '112233445566778899000001',
+    user_id: '112233445566778899000003',
     comment_info: {
       comment_id: '112233445566778899000043',
       text: 'Indeed'
@@ -271,7 +300,7 @@ function insertMockupData() {
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
-    user_id: '112233445566778899000001',
+    user_id: '112233445566778899000002',
     use_info: {
       target_id: '53',
       target_name: 'Slidewiki Introduction'
@@ -283,7 +312,7 @@ function insertMockupData() {
     content_id: '112233445566778899000671',
     content_kind: 'slide',
     content_name: 'Introduction',
-    user_id: '112233445566778899000001',
+    user_id: '112233445566778899000002',
     react_type: 'like'
   };
   let ins10 = ins9.then(() => activitiesDB.insert(activity10));
@@ -302,22 +331,22 @@ function insertMockupData() {
 let authorsMap = new Map([
   ['112233445566778899000001', {
     id: 7,
-    username: 'Vuk M.',
+    username: 'Dejan P.',
     avatar: '/assets/images/mock-avatars/deadpool_256.png'
   }],
   ['112233445566778899000002', {
     id: 8,
-    username: 'Dejan P.',
+    username: 'Nikola T.',
     avatar: '/assets/images/mock-avatars/man_512.png'
   }],
   ['112233445566778899000003', {
     id: 9,
-    username: 'Nikola T.',
+    username: 'Marko B.',
     avatar: '/assets/images/mock-avatars/batman_512.jpg'
   }],
   ['112233445566778899000004', {
     id: 10,
-    username: 'Marko B.',
+    username: 'Valentina J.',
     avatar: '/assets/images/mock-avatars/ninja-simple_512.png'
   }],
   ['112233445566778899000005', {

@@ -53,6 +53,17 @@ module.exports = function(server) {
     }
   });
 
+  //Get activities matching subscriptions from database and return the entire list (when not available, return NOT FOUND).
+  server.route({
+    method: 'GET',
+    path: '/activities/subscribed/{subscriptions*}',
+    handler: handlers.getActivitiesSubscribed,
+    config: {
+      tags: ['api'],
+      description: 'Get a list of subscribed activities (example parameter: u112233445566778899000001/s112233445566778899000671) )'
+    }
+  });//TODO if the url length is critical -> use POST instead?
+
   //Get activity with id id from database and return it (when not available, return NOT FOUND). Validate id
   server.route({
     method: 'GET',

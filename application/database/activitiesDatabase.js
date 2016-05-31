@@ -18,10 +18,32 @@ module.exports = {
       }));
   },
 
-  getAll: function(identifier) {
+  getAllWithContentID: function(identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({ content_id: String(oid(identifier)) }))//TODO use id TODO cast to String?
+      .then((col) => col.find({ content_id: String(oid(identifier)) }))//TODO cast to String?
+      .then((stream) => stream.sort({timestamp: -1}))
+      .then((stream) => stream.toArray());
+  },
+
+  getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray) {
+    makeStringOIDArray(userIdArray);
+    makeStringOIDArray(slideIdArray);
+    makeStringOIDArray(deckIdArray);
+    // idArray = ['574d55138164807f10c62f99'];
+    // idArray[0] = oid(idArray[0]);
+    makeOIDArray(idArray);
+
+    const userIdQuery = {user_id: {$in: userIdArray}};
+    const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
+    const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
+    const idQuery = {_id: {$in: idArray}};
+    const query = {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
+    // const query = {$or: [{user_id: {$in: []}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}]};
+
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.find(query))
       .then((stream) => stream.sort({timestamp: -1}))
       .then((stream) => stream.toArray());
   },
@@ -104,3 +126,23 @@ module.exports = {
   }
 
 };
+
+//convert array items to oid
+function makeOIDArray(array) {
+  if (array === undefined) {
+    array = [];
+  } else {
+    for(let i = 0; i < array.length; i++) {
+      array[i] = oid(array[i]);
+    }
+  }
+}
+function makeStringOIDArray(array) {
+  if (array === undefined) {
+    array = [];
+  } else {
+    array.forEach((item) => {
+      item = String(oid(item));
+    });
+  }
+}
