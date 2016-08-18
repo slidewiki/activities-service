@@ -26,6 +26,13 @@ describe('Database', () => {
     it('should return null when requesting a non existant activity', () => {
       return db.get('asd7db2daasd').should.be.fulfilled.and.become(null);
     });
+    it('should return empty array when requesting activities for non existant content', () => {
+      return db.getAllWithContentID('asd7db2daasd').should.be.fulfilled.and.become([]);
+    });
+
+    it('should return empty array when requesting all comments in the collection', () => {
+      return db.getAllFromCollection().should.be.fulfilled.and.become([]);
+    });
 
     it('should return the activity when inserting one', () => {
       let activity = {
@@ -80,6 +87,19 @@ describe('Database', () => {
         res.should.eventually.have.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'user_id'),
         res.should.eventually.have.property('activity_type', 'share')
       ]);
+    });
+
+    it('should be able to delete a previously inserted activity', () => {
+      let activity = {
+        activity_type: 'add',
+        content_id: '112233445566778899000671',
+        content_kind: 'slide',
+        user_id: '000000000000000000000000'
+      };
+
+      let ins = db.insert(activity);
+      let res = ins.then((ins) => db.delete(ins.ops[0]._id));
+      return ins.then((ins) => db.get(ins.ops[0]._id)).should.be.fulfilled.and.become(null);
     });
   });
 });
