@@ -209,7 +209,7 @@ function insertAuthorData(activities) {
 function insertMockupData() {
   let activity1 = {
     activity_type: 'add',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000004'
@@ -217,15 +217,15 @@ function insertMockupData() {
   let ins1 = activitiesDB.insert(activity1);
   let activity2 = {
     activity_type: 'edit',
-    content_id: '112233445566778899000067',
+    content_id: '9',
     content_kind: 'deck',
-    content_name: 'RDF Data Model',
+    content_name: 'Collaborative authoring of presentations',
     user_id: '112233445566778899000002'
   };
   let ins2 = ins1.then(() => activitiesDB.insert(activity2));
   let activity3 = {
     activity_type: 'translate',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000002',
@@ -237,7 +237,7 @@ function insertMockupData() {
   let ins3 = ins2.then(() => activitiesDB.insert(activity3));
   let activity4 = {
     activity_type: 'translate',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
@@ -249,7 +249,7 @@ function insertMockupData() {
   let ins4 = ins3.then(() => activitiesDB.insert(activity4));
   let activity5 = {
     activity_type: 'translate',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000001',
@@ -261,9 +261,9 @@ function insertMockupData() {
   let ins5 = ins4.then(() => activitiesDB.insert(activity5));
   let activity6 = {
     activity_type: 'share',
-    content_id: '112233445566778899000067',
+    content_id: '9',
     content_kind: 'deck',
-    content_name: 'RDF Data Model',
+    content_name: 'Collaborative authoring of presentations',
     user_id: '112233445566778899000001',
     share_info: {
       postURI: 'http://facebook.com',
@@ -273,7 +273,7 @@ function insertMockupData() {
   let ins6 = ins5.then(() => activitiesDB.insert(activity6));
   let activity7 = {
     activity_type: 'comment',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000003',
@@ -285,7 +285,7 @@ function insertMockupData() {
   let ins7 = ins6.then(() => activitiesDB.insert(activity7));
   let activity8 = {
     activity_type: 'reply',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000003',
@@ -297,7 +297,7 @@ function insertMockupData() {
   let ins8 = ins7.then(() => activitiesDB.insert(activity8));
   let activity9 = {
     activity_type: 'use',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000002',
@@ -309,7 +309,7 @@ function insertMockupData() {
   let ins9 = ins8.then(() => activitiesDB.insert(activity9));
   let activity10 = {
     activity_type: 'react',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000002',
@@ -318,7 +318,7 @@ function insertMockupData() {
   let ins10 = ins9.then(() => activitiesDB.insert(activity10));
   let activity11 = {
     activity_type: 'download',
-    content_id: '575060ae4bc68d1000ea952b',
+    content_id: '8',
     content_kind: 'slide',
     content_name: 'Introduction',
     user_id: '112233445566778899000001'

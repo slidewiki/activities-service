@@ -16,11 +16,11 @@ module.exports = function(server) {
     config: {
       validate: {
         params: {
-          id: Joi.string().alphanum().lowercase()
+          id: Joi.string()
         },
       },
       tags: ['api'],
-      description: 'Get a list of activities (example id: 112233445566778899000671; id:000000000000000000000000 recreates mockup data)'
+      description: 'Get a list of activities (example id: 8; id:000000000000000000000000 recreates mockup data)'
     }
   });
 
@@ -43,7 +43,7 @@ module.exports = function(server) {
     config: {
       validate: {
         params: {
-          id: Joi.string().alphanum().lowercase(),
+          id: Joi.string(),
           start: Joi.number().integer().min(0),
           limit: Joi.number().integer().min(1)
         },
@@ -60,7 +60,7 @@ module.exports = function(server) {
     handler: handlers.getActivitiesSubscribed,
     config: {
       tags: ['api'],
-      description: 'Get a list of subscribed activities (example parameter: u112233445566778899000001/s112233445566778899000671) )'
+      description: 'Get a list of subscribed activities (example parameter: u112233445566778899000001/s8) )'
     }
   });//TODO if the url length is critical -> use POST instead?
 
@@ -90,11 +90,11 @@ module.exports = function(server) {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
-          content_id: Joi.string().alphanum().lowercase(),
+          content_id: Joi.string(),
           content_kind: Joi.string().valid('deck', 'slide'),
           content_name: Joi.string(),
           translation_info: Joi.object().keys({
-            content_id: Joi.string().alphanum().lowercase(),
+            content_id: Joi.string(),
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
@@ -106,7 +106,7 @@ module.exports = function(server) {
             text: Joi.string()
           }),
           use_info: Joi.object().keys({
-            target_id: Joi.string().alphanum().lowercase(),
+            target_id: Joi.string(),
             target_name: Joi.string()
           }),
           react_type: Joi.string(),
@@ -131,11 +131,11 @@ module.exports = function(server) {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
           user_id: Joi.string().alphanum().lowercase(),
-          content_id: Joi.string().alphanum().lowercase(),
+          content_id: Joi.string(),
           content_kind: Joi.string().valid('deck', 'slide'),
           content_name: Joi.string(),
           translation_info: Joi.object().keys({
-            content_id: Joi.string().alphanum().lowercase(),
+            content_id: Joi.string(),
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
@@ -147,7 +147,7 @@ module.exports = function(server) {
             text: Joi.string()
           }),
           use_info: Joi.object().keys({
-            target_id: Joi.string().alphanum().lowercase(),
+            target_id: Joi.string(),
             target_name: Joi.string()
           }),
           react_type: Joi.string(),
@@ -183,11 +183,11 @@ module.exports = function(server) {
     config: {
       validate: {
         payload: {
-          content_id: Joi.string().alphanum().lowercase()
+          content_id: Joi.string()
         },
       },
       tags: ['api'],
-      description: 'Delete all activities for the content (example id: 112233445566778899000671)'
+      description: 'Delete all activities for the content (example id: 8)'
     }
   });
 };

@@ -25,7 +25,9 @@ const activity = {
       type: 'object'
     },
     user_id: objectid,
-    content_id: objectid,
+    content_id: {
+      type: 'string'
+    },
     content_kind: {
       type: 'string',
       enum: ['deck', 'slide']
@@ -34,7 +36,9 @@ const activity = {
       type: 'string'
     },
     translation_info: {
-      content_id: objectid,
+      content_id:  {
+        type: 'string'
+      },
       language: {
         type: 'string'
       }
@@ -54,7 +58,9 @@ const activity = {
       }
     },
     use_info: {
-      target_id: objectid,
+      target_id:  {
+        type: 'string'
+      },
       target_name: {
         type: 'string'
       }
