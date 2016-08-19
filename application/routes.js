@@ -46,8 +46,8 @@ module.exports = function(server) {
         params: {
           id: Joi.string(),
           //id: Joi.string().alphanum().lowercase(),
-          start: Joi.number().integer().min(0),
-          limit: Joi.number().integer().min(1)
+          start: Joi.string(),
+          limit: Joi.string()
         },
       },
       tags: ['api'],
