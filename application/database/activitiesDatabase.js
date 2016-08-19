@@ -90,7 +90,7 @@ module.exports = {
             return activityModel.errors;
           }
 
-          return col.update({_id: oid(id)}, activity, { upsert: true });
+          return col.findOneAndUpdate({_id: oid(id)}, activity, { upsert: true, returnNewDocument: true });
         } catch (e) {
           console.log('validation failed', e);
         }
