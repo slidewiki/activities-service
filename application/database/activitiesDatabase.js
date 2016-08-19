@@ -27,9 +27,9 @@ module.exports = {
   },
 
   getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray) {
-    makeStringOIDArray(userIdArray);
-    makeStringOIDArray(slideIdArray);
-    makeStringOIDArray(deckIdArray);
+    // makeStringOIDArray(userIdArray);
+    // makeStringOIDArray(slideIdArray);
+    // makeStringOIDArray(deckIdArray);
     // idArray = ['574d55138164807f10c62f99'];
     // idArray[0] = oid(idArray[0]);
     makeOIDArray(idArray);
@@ -137,12 +137,12 @@ function makeOIDArray(array) {
     }
   }
 }
-function makeStringOIDArray(array) {
-  if (array === undefined) {
-    array = [];
-  } else {
-    array.forEach((item) => {
-      item = String(oid(item));
-    });
-  }
-}
+// function makeStringOIDArray(array) {
+//   if (array === undefined) {
+//     array = [];
+//   } else {
+//     array.forEach((item) => {
+//       item = String(oid(item));
+//     });
+//   }
+// }
