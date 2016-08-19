@@ -101,5 +101,42 @@ describe('Database', () => {
       let res = ins.then((ins) => db.delete(ins.ops[0]._id));
       return ins.then((ins) => db.get(ins.ops[0]._id)).should.be.fulfilled.and.become(null);
     });
+
+    it('should be able to delete all activities for the content', () => {
+      let activity = {
+        activity_type: 'add',
+        content_id: '112233445566778899000671',
+        content_kind: 'slide',
+        user_id: '000000000000000000000000'
+      };
+      let activity2 = {
+        activity_type: 'share',
+        content_id: '112233445566778899000671',
+        content_kind: 'slide',
+        user_id: '000000000000000000000000'
+      };
+      let ins = db.insert(activity);
+      let res = ins.then((ins) => db.insert(activity2));
+      let res2 = res.then((res) => db.deleteAllWithContentID('112233445566778899000671'));
+      return res2.then((res2) => db.getAllWithContentID('112233445566778899000671')).should.be.fulfilled.and.become([]);
+    });
+    it('should be able to delete all activities from the collection', () => {
+      let activity = {
+        activity_type: 'add',
+        content_id: '112233445566778899000671',
+        content_kind: 'slide',
+        user_id: '000000000000000000000000'
+      };
+      let activity2 = {
+        activity_type: 'share',
+        content_id: '112233445566778899000671',
+        content_kind: 'slide',
+        user_id: '000000000000000000000000'
+      };
+      let ins = db.insert(activity);
+      let res = ins.then((ins) => db.insert(activity2));
+      let res2 = res.then((res) => db.deleteAll());
+      return res2.then((res2) => db.getAllFromCollection()).should.be.fulfilled.and.become([]);
+    });
   });
 });
