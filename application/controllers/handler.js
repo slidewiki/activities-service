@@ -8,6 +8,8 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
   activitiesDB = require('../database/activitiesDatabase'), //Database functions specific for activities
   co = require('../common');
 
+const Microservices = require('../configs/microservices');
+let http = require('http');
 module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
@@ -15,14 +17,18 @@ module.exports = {
       if (co.isEmpty(activity))
         reply(boom.notFound());
       else {
-        activity.author = authorsMap.get(activity.user_id);//insert author data
-        if (activity.author === undefined) {
-          activity.author = authorsMap.get('112233445566778899000000');
-        }
-        reply(co.rewriteID(activity));
+        return insertAuthor(activity).then((activity) => {
+
+          if (activity.user_id.length === 24) {//Mockup - old kind of ids
+            activity.author = getMockupAuthor(activity.user_id);
+          }
+          reply(co.rewriteID(activity));
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
       }
     }).catch((error) => {
-
       request.log('error', error);
       reply(boom.badImplementation());
     });
@@ -35,8 +41,12 @@ module.exports = {
       if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
         throw inserted;
       else {
-        inserted.ops[0].author = authorsMap.get(inserted.ops[0].user_id);//insert author data
-        reply(co.rewriteID(inserted.ops[0]));
+        return insertAuthor(inserted.ops[0]).then((activity) => {
+          reply(co.rewriteID(activity));
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
       }
     }).catch((error) => {
       request.log('error', error);
@@ -88,7 +98,20 @@ module.exports = {
         const start = request.params.start;
         const limit = request.params.limit;
         let activitiesLimited = activities.slice(start, start + limit);
-        insertAuthorData(activities);
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity).then((activity) => {
+
+            if (activity.user_id.length === 24) {//Mockup - old kind of ids
+              activity.author = getMockupAuthor(activity.user_id);//insert author data
+            }
+          }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+          });
+          arrayOfAuthorPromisses.push(promise);
+        });
 
         //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
         if (start < 200) {
@@ -96,9 +119,14 @@ module.exports = {
           activitiesLimited = activitiesLimited.concat(randomActivities);
         }
 
-        let jsonReply = JSON.stringify(activitiesLimited);
-        reply(jsonReply);
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activitiesLimited);
+          reply(jsonReply);
 
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
       }).catch((error) => {
         request.log('error', error);
         reply(boom.badImplementation());
@@ -114,10 +142,29 @@ module.exports = {
       .then(() => activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
       // .then(() => activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
       .then((activities) => {
-        insertAuthorData(activities);
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity).then((activity) => {
 
-        let jsonReply = JSON.stringify(activities);
-        reply(jsonReply);
+            if (activity.user_id.length === 24) {//Mockup - old kind of ids
+              activity.author = getMockupAuthor(activity.user_id);//insert author data
+            }
+          }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+          });
+          arrayOfAuthorPromisses.push(promise);
+        });
+
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activities);
+          reply(jsonReply);
+
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
 
       })).catch((error) => {
         request.log('error', error);
@@ -148,10 +195,29 @@ module.exports = {
 
     activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray)
       .then((activities) => {
-        insertAuthorData(activities);
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity).then((activity) => {
 
-        let jsonReply = JSON.stringify(activities);
-        reply(jsonReply);
+            if (activity.user_id.length === 24) {//Mockup - old kind of ids
+              activity.author = getMockupAuthor(activity.user_id);//insert author data
+            }
+          }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+          });
+          arrayOfAuthorPromisses.push(promise);
+        });
+
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activities);
+          reply(jsonReply);
+
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
 
       }).catch((error) => {
         request.log('error', error);
@@ -163,10 +229,29 @@ module.exports = {
   getAllActivities: function(request, reply) {
     activitiesDB.getAllFromCollection()
       .then((activities) => {
-        insertAuthorData(activities);
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity).then((activity) => {
 
-        let jsonReply = JSON.stringify(activities);
-        reply(jsonReply);
+            if (activity.user_id.length === 24) {//Mockup - old kind of ids
+              activity.author = getMockupAuthor(activity.user_id);//insert author data
+            }
+          }).catch((error) => {
+            request.log('error', error);
+            reply(boom.badImplementation());
+          });
+          arrayOfAuthorPromisses.push(promise);
+        });
+
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activities);
+          reply(jsonReply);
+
+        }).catch((error) => {
+          request.log('error', error);
+          reply(boom.badImplementation());
+        });
 
       }).catch((error) => {
         request.log('error', error);
@@ -198,11 +283,57 @@ function getRandomActivities(activities, numActivities) {
   return randomActivities;
 }
 
-function insertAuthorData(activities) {
-  activities.forEach((activity) => {
-    co.rewriteID(activity);
-    activity.author = authorsMap.get(activity.user_id);//insert author data
+//insert author data using user microservice
+function insertAuthor(activity) {
+  let myPromise = new Promise((resolve, reject) => {
+
+    let options = {
+      host: Microservices.user.uri,
+      port: 80,
+      path: '/user/' + activity.user_id
+    };
+
+    let req = http.get(options, (res) => {
+      if (res.statusCode === '404') {//user not found
+        activity.author = {
+          id: activity.user_id,
+          username: 'unknown',
+          avatar: ''
+        };
+        resolve(activity);
+      }
+      // console.log('HEADERS: ' + JSON.stringify(res.headers));
+      res.setEncoding('utf8');
+      let body = '';
+      res.on('data', (chunk) => {
+        // console.log('Response: ', chunk);
+        body += chunk;
+      });
+      res.on('end', () => {
+        let parsed = JSON.parse(body);
+        activity.author = {
+          id: activity.user_id,
+          username: parsed.username,
+          avatar: parsed.picture
+        };
+        resolve(activity);
+      });
+    });
+    req.on('error', (e) => {
+      console.log('problem with request: ' + e.message);
+      reject(e);
+    });
   });
+
+  return myPromise;
+}
+
+function getMockupAuthor(userId) {
+  let author = authorsMap.get(userId);//insert author data
+  if (author === undefined) {
+    author = authorsMap.get('112233445566778899000000');
+  }
+  return author;
 }
 
 //Insert mockup data to the collection
