@@ -13,7 +13,7 @@ let http = require('http');
 module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
-    activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
+    return activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
       if (co.isEmpty(activity))
         reply(boom.notFound());
       else {
@@ -36,7 +36,7 @@ module.exports = {
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
-    activitiesDB.insert(request.payload).then((inserted) => {
+    return activitiesDB.insert(request.payload).then((inserted) => {
       //console.log('inserted: ', inserted);
       if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
         throw inserted;
@@ -56,7 +56,7 @@ module.exports = {
 
   //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
   updateActivity: function(request, reply) {
-    activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
+    return activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
       //console.log('updated: ', replaced);
       if (co.isEmpty(replaced.value))
         throw replaced;
@@ -70,7 +70,7 @@ module.exports = {
 
   //Delete Activity with id id
   deleteActivity: function(request, reply) {
-    activitiesDB.delete(encodeURIComponent(request.payload.id)).then(() =>
+    return activitiesDB.delete(encodeURIComponent(request.payload.id)).then(() =>
       reply({'msg': 'activity is successfully deleted...'})
     ).catch((error) => {
       request.log('error', error);
@@ -80,7 +80,7 @@ module.exports = {
 
   //Delete Activities with content id id
   deleteActivities: function(request, reply) {
-    activitiesDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
+    return activitiesDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
       reply({'msg': 'activities are successfully deleted...'})
     ).catch((error) => {
       request.log('error', error);
@@ -90,7 +90,7 @@ module.exports = {
 
   //Get All Activities from database for the id in the request, limited by the number of documents
   getActivitiesLimited: function(request, reply) {
-    activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
+    return activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
     // activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
       .then((activities) => {
 
@@ -138,7 +138,7 @@ module.exports = {
   //Get All Activities from database for the id in the request
   getActivities: function(request, reply) {
     //Clean collection and insert mockup activities - only if request.params.id === 0
-    initMockupData(request.params.id)
+    return initMockupData(request.params.id)
       .then(() => activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
       // .then(() => activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
       .then((activities) => {
@@ -193,7 +193,7 @@ module.exports = {
       }
     });
 
-    activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray)
+    return activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray)
       .then((activities) => {
         let arrayOfAuthorPromisses = [];
         activities.forEach((activity) => {
@@ -227,7 +227,7 @@ module.exports = {
 
   //Get All Activities from database
   getAllActivities: function(request, reply) {
-    activitiesDB.getAllFromCollection()
+    return activitiesDB.getAllFromCollection()
       .then((activities) => {
         let arrayOfAuthorPromisses = [];
         activities.forEach((activity) => {
