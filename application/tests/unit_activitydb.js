@@ -27,7 +27,7 @@ describe('Database', () => {
       return db.get('asd7db2daasd').should.be.fulfilled.and.become(null);
     });
     it('should return empty array when requesting activities for non existant content', () => {
-      return db.getAllWithContentID('asd7db2daasd').should.be.fulfilled.and.become([]);
+      return db.getAllForDeckOrSlide('slide', 'asd7db2daasd').should.be.fulfilled.and.become([]);
     });
 
     it('should return empty array when requesting all comments in the collection', () => {
@@ -118,7 +118,7 @@ describe('Database', () => {
       let ins = db.insert(activity);
       let res = ins.then((ins) => db.insert(activity2));
       let res2 = res.then((res) => db.deleteAllWithContentID('112233445566778899000671'));
-      return res2.then((res2) => db.getAllWithContentID('112233445566778899000671')).should.be.fulfilled.and.become([]);
+      return res2.then((res2) => db.getAllForDeckOrSlide('slide', '112233445566778899000671')).should.be.fulfilled.and.become([]);
     });
     it('should be able to delete all activities from the collection', () => {
       let activity = {
