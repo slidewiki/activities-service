@@ -88,91 +88,110 @@ module.exports = {
     });
   },
 
-  //Get All Activities from database for the id in the request, limited by the number of documents
-  getActivitiesLimited: function(request, reply) {
-    return activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
-    // activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
-      .then((activities) => {
-
-        //limit the resuls
-        const start = request.params.start;
-        const limit = request.params.limit;
-        let activitiesLimited = activities.slice(start, start + limit);
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity).then((activity) => {
-
-            if (activity.user_id.length === 24) {//Mockup - old kind of ids
-              activity.author = getMockupAuthor(activity.user_id);//insert author data
-            }
-          }).catch((error) => {
-            request.log('error', error);
-            reply(boom.badImplementation());
-          });
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        //add random activities - for demonstration purpose only ; TODO remove addRandomActivities
-        if (start < 200) {
-          let randomActivities = getRandomActivities(activities, limit - activitiesLimited.length);
-          activitiesLimited = activitiesLimited.concat(randomActivities);
-        }
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activitiesLimited);
-          reply(jsonReply);
-
-        }).catch((error) => {
-          request.log('error', error);
-          reply(boom.badImplementation());
-        });
-      }).catch((error) => {
-        request.log('error', error);
-        reply(boom.badImplementation());
-      });
-
-      //TODO get activities for a deck (activities of all its decks and slides)
-  },
-
-  //Get All Activities from database for the id in the request
+  //Get All Activities from database for the content_kind and id in the request, limited by the number of documents
   getActivities: function(request, reply) {
-    //Clean collection and insert mockup activities - only if request.params.id === 0
-    return initMockupData(request.params.id)
-      .then(() => activitiesDB.getAllFromCollection()//TODO call getAllWithContentID(identifier)
-      // .then(() => activitiesDB.getAllWithContentID(encodeURIComponent(request.params.id))
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity).then((activity) => {
+    let content_kind = request.params.content_kind;
+    if (content_kind === undefined) {// this is just to serve requests from old front-end version
+      content_kind = 'slide';
+    }
 
-            if (activity.user_id.length === 24) {//Mockup - old kind of ids
-              activity.author = getMockupAuthor(activity.user_id);//insert author data
-            }
+    return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
+      let slideIdArray = [];
+      let deckIdArray = [];
+
+      arrayOfDecksAndSlides.forEach((deckOrSlide) => {
+        if (deckOrSlide.type === 'slide') {
+          slideIdArray.push(deckOrSlide.id);
+        } else {
+          deckIdArray.push(deckOrSlide.id);
+        }
+      });
+
+      return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
+        .then((activities) => {
+          //limit the resuls
+          const start = request.params.start;
+          const limit = request.params.limit;
+          let activitiesLimited = activities;
+          if (start !== undefined && limit !== undefined) {
+            activitiesLimited = activities.slice(start, start + limit);
+          }
+          let arrayOfAuthorPromisses = [];
+          activitiesLimited.forEach((activity) => {
+            co.rewriteID(activity);
+            let promise = insertAuthor(activity).then((activity) => {
+
+              if (activity.user_id.length === 24) {//Mockup - old kind of ids
+                activity.author = getMockupAuthor(activity.user_id);//insert author data
+              }
+            }).catch((error) => {
+              request.log('error', error);
+              reply(boom.badImplementation());
+            });
+            arrayOfAuthorPromisses.push(promise);
+          });
+
+          //add random activities - for demonstration purpose only ;
+          // if (start < 200) {
+          //   let randomActivities = getRandomActivities(activities, limit - activitiesLimited.length);
+          //   activitiesLimited = activitiesLimited.concat(randomActivities);
+          // }
+
+          Promise.all(arrayOfAuthorPromisses).then(() => {
+            let jsonReply = JSON.stringify(activitiesLimited);
+            reply(jsonReply);
+
           }).catch((error) => {
             request.log('error', error);
             reply(boom.badImplementation());
           });
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-
         }).catch((error) => {
           request.log('error', error);
           reply(boom.badImplementation());
         });
-
-      })).catch((error) => {
-        request.log('error', error);
-        reply(boom.badImplementation());
-      });
-
-      //TODO get activities for a deck (activities of all its decks and slides)
+    }).catch((error) => {
+      request.log('error', error);
+      reply(boom.badImplementation());
+    });
   },
+
+  //Get All Activities from database for the content_kind and id in the request
+  // getActivities: function(request, reply) { - old version (before getting subactivities)
+  //   //Clean collection and insert mockup activities - only if request.params.id === 0
+  //   return initMockupData(request.params.id)
+  //     // .then(() => activitiesDB.getAllFromCollection()
+  //     .then(() => activitiesDB.getAllForDeckOrSlide(content_kind, encodeURIComponent(request.params.id))
+  //     .then((activities) => {
+  //       let arrayOfAuthorPromisses = [];
+  //       activities.forEach((activity) => {
+  //         co.rewriteID(activity);
+  //         let promise = insertAuthor(activity).then((activity) => {
+  //
+  //           if (activity.user_id.length === 24) {//Mockup - old kind of ids
+  //             activity.author = getMockupAuthor(activity.user_id);//insert author data
+  //           }
+  //         }).catch((error) => {
+  //           request.log('error', error);
+  //           reply(boom.badImplementation());
+  //         });
+  //         arrayOfAuthorPromisses.push(promise);
+  //       });
+  //
+  //       Promise.all(arrayOfAuthorPromisses).then(() => {
+  //         let jsonReply = JSON.stringify(activities);
+  //         reply(jsonReply);
+  //
+  //       }).catch((error) => {
+  //         request.log('error', error);
+  //         reply(boom.badImplementation());
+  //       });
+  //
+  //     })).catch((error) => {
+  //       request.log('error', error);
+  //       reply(boom.badImplementation());
+  //     });
+  //
+  // },
 
   //Get All Activities from database for subscriptions in the request
   getActivitiesSubscribed: function(request, reply) {
@@ -281,6 +300,61 @@ function getRandomActivities(activities, numActivities) {
     randomActivities.push(a);
   }
   return randomActivities;
+}
+
+function getSubdecksAndSlides(content_kind, id) {
+  let myPromise = new Promise((resolve, reject) => {
+    if (content_kind === 'slide') {
+      resolve([{
+        type: content_kind,
+        id: id
+      }]);
+    } else {//if deck => get activities of all its decks and slides
+      let arrayOfSubdecksAndSlides = [];
+      let options = {
+        host: Microservices.deck.uri,
+        port: 80,
+        path: '/decktree/' + id
+      };
+
+      let req = http.get(options, (res) => {
+        if (res.statusCode === '404') {//deck found
+          resolve([]);
+        }
+        // console.log('HEADERS: ' + JSON.stringify(res.headers));
+        res.setEncoding('utf8');
+        let body = '';
+        res.on('data', (chunk) => {
+          // console.log('Response: ', chunk);
+          body += chunk;
+        });
+        res.on('end', () => {
+          let parsed = JSON.parse(body);
+          arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
+          resolve(arrayOfSubdecksAndSlides);
+        });
+
+      });
+      req.on('error', (e) => {
+        console.log('problem with request: ' + e.message);
+        reject(e);
+      });
+    }
+  });
+  return myPromise;
+}
+
+function getArrayOfChildren(node) {//recursive
+  let array = [{
+    type: node.type,
+    id: node.id
+  }];
+  if (node.children) {
+    node.children.forEach((child) => {
+      array = array.concat(getArrayOfChildren(child));
+    });
+  }
+  return array;
 }
 
 //insert author data using user microservice
