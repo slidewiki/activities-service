@@ -26,7 +26,7 @@ module.exports = {
       .then((stream) => stream.toArray());
   },
 
-  getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray) {
+  getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray, ownerId) {
     // makeStringOIDArray(userIdArray);
     // makeStringOIDArray(slideIdArray);
     // makeStringOIDArray(deckIdArray);
@@ -38,7 +38,11 @@ module.exports = {
     const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
     const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
     const idQuery = {_id: {$in: idArray}};
-    const query = {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
+    const ownerQuery = {content_owner_id: ownerId};
+    const query = (ownerId !== undefined) ?
+     {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
+     :
+     {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
     // const query = {$or: [{user_id: {$in: []}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}]};
 
     return helper.connectToDatabase()

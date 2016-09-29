@@ -200,6 +200,7 @@ module.exports = {
     let slideIdArray = [];
     let deckIdArray = [];
     let idArray = [];
+    let ownerId = undefined;
     subscriptions.forEach((subscription) => {
       if (subscription.startsWith('u')) {
         userIdArray.push(subscription.substring(1));
@@ -209,10 +210,12 @@ module.exports = {
         deckIdArray.push(subscription.substring(1));
       } else if (subscription.startsWith('i')) {
         idArray.push(subscription.substring(1));
+      } else if (subscription.startsWith('o')) {
+        ownerId = subscription.substring(1);
       }
     });
 
-    return activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray)
+    return activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray, ownerId)
       .then((activities) => {
         let arrayOfAuthorPromisses = [];
         activities.forEach((activity) => {
