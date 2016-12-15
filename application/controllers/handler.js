@@ -10,6 +10,48 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
 
 const Microservices = require('../configs/microservices');
 let http = require('http');
+
+//Send request to insert new notification
+function createNotification(activity) {
+  //TODO find list of subscribed users
+  // if (activity.content_id.split('-')[0] === '8') {//current dummy user is subscribed to this content_id
+
+  let notification = activity;
+  notification.subscribed_user_id = activity.content_owner_id;
+  notification.activity_id = activity.id;
+
+  delete notification.timestamp;
+  delete notification.author;
+  delete notification.id;
+
+  let data = JSON.stringify(notification);
+  let options = {
+    host: Microservices.notification.uri,
+    port: 80,
+    path: '/notification/new',
+    method: 'POST',
+    headers : {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Content-Length': data.length
+    }
+  };
+
+  let req = http.request(options, (res) => {
+    // console.log('STATUS: ' + res.statusCode);
+    // console.log('HEADERS: ' + JSON.stringify(res.headers));
+    res.setEncoding('utf8');
+    res.on('data', (chunk) => {
+      // console.log('Response: ', chunk);
+    });
+  });
+  req.on('error', (e) => {
+    console.log('problem with request: ' + e.message);
+  });
+  req.write(data);
+  req.end();
+}
+
 module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
@@ -42,7 +84,9 @@ module.exports = {
         throw inserted;
       else {
         return insertAuthor(inserted.ops[0]).then((activity) => {
-          reply(co.rewriteID(activity));
+          activity = co.rewriteID(activity);
+          createNotification(activity);
+          reply(activity);
         }).catch((error) => {
           request.log('error', error);
           reply(boom.badImplementation());
