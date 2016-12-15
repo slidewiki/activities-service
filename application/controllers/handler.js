@@ -283,27 +283,27 @@ module.exports = {
 };
 
 //Delete all and insert mockup data
-function initMockupData(identifier) {
-  if (identifier === '000000000000000000000000') {//create collection, delete all and insert mockup data only if the user has explicitly sent 000000000000000000000000
-    return activitiesDB.createCollection()
-      .then(() => activitiesDB.deleteAll())
-      .then(() => insertMockupData());
-  }
-  return new Promise((resolve) => {resolve (1);});
-}
+// function initMockupData(identifier) {
+//   if (identifier === '000000000000000000000000') {//create collection, delete all and insert mockup data only if the user has explicitly sent 000000000000000000000000
+//     return activitiesDB.createCollection()
+//       .then(() => activitiesDB.deleteAll())
+//       .then(() => insertMockupData());
+//   }
+//   return new Promise((resolve) => {resolve (1);});
+// }
 
-function getRandomActivities(activities, numActivities) {
-
-  let randomActivities = [];
-  for (let i=0; i<numActivities; i++) {
-    const randomIndex = Math.floor(Math.random()*1000) % activities.length;
-    let a = JSON.parse(JSON.stringify(activities[randomIndex]));//clone it
-    a.id = randomActivities.length;
-    a.content_name = a.content_name + ' (random)';
-    randomActivities.push(a);
-  }
-  return randomActivities;
-}
+// function getRandomActivities(activities, numActivities) {
+//
+//   let randomActivities = [];
+//   for (let i=0; i<numActivities; i++) {
+//     const randomIndex = Math.floor(Math.random()*1000) % activities.length;
+//     let a = JSON.parse(JSON.stringify(activities[randomIndex]));//clone it
+//     a.id = randomActivities.length;
+//     a.content_name = a.content_name + ' (random)';
+//     randomActivities.push(a);
+//   }
+//   return randomActivities;
+// }
 
 function getSubdecksAndSlides(content_kind, id) {
   let myPromise = new Promise((resolve, reject) => {
