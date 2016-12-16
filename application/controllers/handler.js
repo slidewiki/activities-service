@@ -16,13 +16,22 @@ function createNotification(activity) {
   //TODO find list of subscribed users
   // if (activity.content_id.split('-')[0] === '8') {//current dummy user is subscribed to this content_id
 
-  let notification = activity;
+  let notification = {
+    activity_type: activity.activity_type,
+    user_id: activity.user_id,
+    content_id: activity.content_id,
+    content_kind: activity.content_kind,
+    content_name: activity.content_name,
+    content_owner_id: activity.content_owner_id,
+    translation_info: activity.translation_info,
+    share_info: activity.share_info,
+    comment_info: activity.comment_info,
+    use_info: activity.use_info,
+    react_type: activity.react_type,
+    rate_type:  activity.rate_type
+  };
   notification.subscribed_user_id = activity.content_owner_id;
   notification.activity_id = activity.id;
-
-  delete notification.timestamp;
-  delete notification.author;
-  delete notification.id;
 
   let data = JSON.stringify(notification);
   let options = {
