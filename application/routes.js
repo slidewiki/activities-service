@@ -22,7 +22,7 @@ module.exports = function(server) {
         },
       },
       tags: ['api'],
-      description: 'Get a list of activities (example id: 8; id:000000000000000000000000 recreates mockup data)'
+      description: 'Get a list of activities'
     }
   });
 
