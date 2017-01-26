@@ -347,9 +347,7 @@ function getSubdecksAndSlides(content_kind, id) {
       };
 
       let req = http.get(options, (res) => {
-        if (res.statusCode === '404') {//deck found
-          resolve([]);
-        }
+
         // console.log('HEADERS: ' + JSON.stringify(res.headers));
         res.setEncoding('utf8');
         let body = '';
@@ -358,8 +356,10 @@ function getSubdecksAndSlides(content_kind, id) {
           body += chunk;
         });
         res.on('end', () => {
-          let parsed = JSON.parse(body);
-          arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
+          if (res.statusCode === 200) {//deck found
+            let parsed = JSON.parse(body);
+            arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
+          }
           resolve(arrayOfSubdecksAndSlides);
         });
 
@@ -397,14 +397,6 @@ function insertAuthor(activity) {
     };
 
     let req = http.get(options, (res) => {
-      if (res.statusCode === '404') {//user not found
-        activity.author = {
-          id: activity.user_id,
-          username: 'unknown',
-          avatar: ''
-        };
-        resolve(activity);
-      }
       // console.log('HEADERS: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
       let body = '';
@@ -413,11 +405,17 @@ function insertAuthor(activity) {
         body += chunk;
       });
       res.on('end', () => {
-        let parsed = JSON.parse(body);
+        let username = 'unknown';
+        let avatar = '';
+        if (res.statusCode === 200) {//user is found
+          let parsed = JSON.parse(body);
+          username = parsed.username;
+          avatar = parsed.picture;
+        }
         activity.author = {
           id: activity.user_id,
-          username: parsed.username,
-          avatar: parsed.picture
+          username: username,
+          avatar: avatar
         };
         resolve(activity);
       });
@@ -430,172 +428,3 @@ function insertAuthor(activity) {
 
   return myPromise;
 }
-
-// function getMockupAuthor(userId) {
-//   let author = authorsMap.get(userId);//insert author data
-//   if (author === undefined) {
-//     author = authorsMap.get('112233445566778899000000');
-//   }
-//   return author;
-// }
-
-//Insert mockup data to the collection
-// function insertMockupData() {
-//   let activity1 = {
-//     activity_type: 'add',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000004'
-//   };
-//   let ins1 = activitiesDB.insert(activity1);
-//   let activity2 = {
-//     activity_type: 'edit',
-//     content_id: '9',
-//     content_kind: 'deck',
-//     content_name: 'Collaborative authoring of presentations',
-//     user_id: '112233445566778899000002'
-//   };
-//   let ins2 = ins1.then(() => activitiesDB.insert(activity2));
-//   let activity3 = {
-//     activity_type: 'translate',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000002',
-//     translation_info: {
-//       content_id: '42',
-//       language: 'Serbian'
-//     }
-//   };
-//   let ins3 = ins2.then(() => activitiesDB.insert(activity3));
-//   let activity4 = {
-//     activity_type: 'translate',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000001',
-//     translation_info: {
-//       content_id: '43',
-//       language: 'Bosnian'
-//     }
-//   };
-//   let ins4 = ins3.then(() => activitiesDB.insert(activity4));
-//   let activity5 = {
-//     activity_type: 'translate',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000001',
-//     translation_info: {
-//       content_id: '44',
-//       language: 'Croatian'
-//     }
-//   };
-//   let ins5 = ins4.then(() => activitiesDB.insert(activity5));
-//   let activity6 = {
-//     activity_type: 'share',
-//     content_id: '9',
-//     content_kind: 'deck',
-//     content_name: 'Collaborative authoring of presentations',
-//     user_id: '112233445566778899000001',
-//     share_info: {
-//       postURI: 'http://facebook.com',
-//       platform: 'Facebook'
-//     }
-//   };
-//   let ins6 = ins5.then(() => activitiesDB.insert(activity6));
-//   let activity7 = {
-//     activity_type: 'comment',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000003',
-//     comment_info: {
-//       comment_id: '112233445566778899000042',
-//       text: 'Awesome!'
-//     }
-//   };
-//   let ins7 = ins6.then(() => activitiesDB.insert(activity7));
-//   let activity8 = {
-//     activity_type: 'reply',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000003',
-//     comment_info: {
-//       comment_id: '112233445566778899000043',
-//       text: 'Indeed'
-//     }
-//   };
-//   let ins8 = ins7.then(() => activitiesDB.insert(activity8));
-//   let activity9 = {
-//     activity_type: 'use',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000002',
-//     use_info: {
-//       target_id: '53',
-//       target_name: 'Slidewiki Introduction'
-//     }
-//   };
-//   let ins9 = ins8.then(() => activitiesDB.insert(activity9));
-//   let activity10 = {
-//     activity_type: 'react',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000002',
-//     react_type: 'like'
-//   };
-//   let ins10 = ins9.then(() => activitiesDB.insert(activity10));
-//   let activity11 = {
-//     activity_type: 'download',
-//     content_id: '8',
-//     content_kind: 'slide',
-//     content_name: 'Introduction',
-//     user_id: '112233445566778899000001'
-//   };
-//   let ins11 = ins10.then(() => activitiesDB.insert(activity11));
-//
-//   return ins11;
-// }
-
-// let authorsMap = new Map([
-//   ['112233445566778899000001', {
-//     id: 7,
-//     username: 'Dejan P.',
-//     avatar: '/assets/images/mock-avatars/deadpool_256.png'
-//   }],
-//   ['112233445566778899000002', {
-//     id: 8,
-//     username: 'Nikola T.',
-//     avatar: '/assets/images/mock-avatars/man_512.png'
-//   }],
-//   ['112233445566778899000003', {
-//     id: 9,
-//     username: 'Marko B.',
-//     avatar: '/assets/images/mock-avatars/batman_512.jpg'
-//   }],
-//   ['112233445566778899000004', {
-//     id: 10,
-//     username: 'Valentina J.',
-//     avatar: '/assets/images/mock-avatars/ninja-simple_512.png'
-//   }],
-//   ['112233445566778899000005', {
-//     id: 11,
-//     username: 'Voice in the crowd',
-//     avatar: '/assets/images/mock-avatars/anon_256.jpg'
-//   }],
-//   ['112233445566778899000006', {
-//     id: 12,
-//     username: 'SlideWiki FTW',
-//     avatar: '/assets/images/mock-avatars/spooky_256.png'
-//   }],
-//   ['112233445566778899000000', {
-//     id: 13,
-//     username: 'Dutch',
-//     avatar: '/assets/images/mock-avatars/dgirl.jpeg'
-//   }]
-// ]);
