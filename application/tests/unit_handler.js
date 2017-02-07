@@ -28,22 +28,23 @@ describe('Activity service', () => {
   let activityId = '';
 
   context('Using all exported functions - ', () => {
-    it('Add activity', () => {
-      let req = {
-        payload: activity
-      };
+    // it('Add activity', () => {
+    //   let req = {
+    //     payload: activity
+    //   };
+    //
+    //   return handler.newActivity(req, (result) => {
+    //     expect(result.id).to.not.equal(undefined);
+    //     activityId = result.id;
+    //     return;
+    //   })
+    //   .catch((Error) => {
+    //     console.log(Error);
+    //     throw Error;
+    //     expect(1).to.equals(2);
+    //   });
+    // });
 
-      return handler.newActivity(req, (result) => {
-        expect(result.id).to.not.equal(undefined);
-        activityId = result.id;
-        return;
-      })
-      .catch((Error) => {
-        console.log(Error);
-        throw Error;
-        expect(1).to.equals(2);
-      });
-    });
     // it('Get comment', () => {
     //   let req = {
     //     params: {
@@ -94,22 +95,22 @@ describe('Activity service', () => {
     //   });
     // });
 
-    it('Delete activity', () => {
-      let req = {
-        payload: {
-          id: activityId
-        }
-      };
-      return handler.deleteActivity(req, (result) => {
-        expect(result.msg).to.not.equal(undefined);
-        return;
-      })
-      .catch((Error) => {
-        console.log('Error', Error);
-        throw Error;
-        expect(1).to.equals(2);
-      });
-    });
+    // it('Delete activity', () => {
+    //   let req = {
+    //     payload: {
+    //       id: activityId
+    //     }
+    //   };
+    //   return handler.deleteActivity(req, (result) => {
+    //     expect(result.msg).to.not.equal(undefined);
+    //     return;
+    //   })
+    //   .catch((Error) => {
+    //     console.log('Error', Error);
+    //     throw Error;
+    //     expect(1).to.equals(2);
+    //   });
+    // });
 
   });
 });

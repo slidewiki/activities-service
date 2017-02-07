@@ -72,12 +72,12 @@ module.exports = {
 
           reply(co.rewriteID(activity));
         }).catch((error) => {
-          request.log('error', error);
+          tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
       }
     }).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -94,12 +94,12 @@ module.exports = {
           createNotification(activity);
           reply(activity);
         }).catch((error) => {
-          request.log('error', error);
+          tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
       }
     }).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -113,7 +113,7 @@ module.exports = {
       else
         reply(replaced.value);
     }).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -123,7 +123,7 @@ module.exports = {
     return activitiesDB.delete(encodeURIComponent(request.payload.id)).then(() =>
       reply({'msg': 'activity is successfully deleted...'})
     ).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -133,7 +133,7 @@ module.exports = {
     return activitiesDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
       reply({'msg': 'activities are successfully deleted...'})
     ).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -184,15 +184,15 @@ module.exports = {
             reply(jsonReply);
 
           }).catch((error) => {
-            request.log('error', error);
+            tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
         }).catch((error) => {
-          request.log('error', error);
+          tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
     }).catch((error) => {
-      request.log('error', error);
+      tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
   },
@@ -213,7 +213,7 @@ module.exports = {
   //             activity.author = getMockupAuthor(activity.user_id);//insert author data
   //           }
   //         }).catch((error) => {
-  //           request.log('error', error);
+  //           tryRequestLog(request, 'error', error);
   //           reply(boom.badImplementation());
   //         });
   //         arrayOfAuthorPromisses.push(promise);
@@ -224,12 +224,12 @@ module.exports = {
   //         reply(jsonReply);
   //
   //       }).catch((error) => {
-  //         request.log('error', error);
+  //         tryRequestLog(request, 'error', error);
   //         reply(boom.badImplementation());
   //       });
   //
   //     })).catch((error) => {
-  //       request.log('error', error);
+  //       tryRequestLog(request, 'error', error);
   //       reply(boom.badImplementation());
   //     });
   //
@@ -271,12 +271,12 @@ module.exports = {
           reply(jsonReply);
 
         }).catch((error) => {
-          request.log('error', error);
+          tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
 
       }).catch((error) => {
-        request.log('error', error);
+        tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
   },
@@ -297,12 +297,12 @@ module.exports = {
           reply(jsonReply);
 
         }).catch((error) => {
-          request.log('error', error);
+          tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
 
       }).catch((error) => {
-        request.log('error', error);
+        tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
   }
@@ -427,4 +427,13 @@ function insertAuthor(activity) {
   });
 
   return myPromise;
+}
+
+//This function tries to use request log and uses console.log if this doesnt work - this is the case in unit tests
+function tryRequestLog(request, message, _object) {
+  try {
+    request.log(message, _object);
+  } catch (e) {
+    console.log(message, _object);
+  }
 }
