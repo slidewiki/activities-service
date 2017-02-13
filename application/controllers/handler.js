@@ -36,11 +36,7 @@ function createNotification(activity) {
 
   let data = JSON.stringify(notification);
 
-  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data}).then((res) => {
-    console.log('Res', res);
-  }).catch((err) => {
-    console.log('Error', err);
-  });
+  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data});
 }
 
 module.exports = {
@@ -329,7 +325,7 @@ function getSubdecksAndSlides(content_kind, id) {
           let parsed = JSON.parse(res);
           arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
         } catch(e) {
-          console.log(e); // error in the above string (in this case, yes)!
+          console.log(e);
         }
 
         resolve(arrayOfSubdecksAndSlides);
@@ -368,7 +364,7 @@ function insertAuthor(activity) {
         username = parsed.username;
         avatar = parsed.picture;
       } catch(e) {
-        console.log(e); // error in the above string (in this case, yes)!
+        console.log(e);
       }
 
       activity.author = {
