@@ -1,4 +1,4 @@
-template:
+activitiesservice:
   image: slidewiki/activitiesservice
   restart: on-failure:5
   expose:
