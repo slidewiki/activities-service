@@ -17,7 +17,6 @@ function createNotification(activity) {
   //TODO find list of subscribed users
   // if (activity.content_id.split('-')[0] === '8') {//current dummy user is subscribed to this content_id
 
-
   let notification = {
     activity_type: activity.activity_type,
     user_id: activity.user_id,
@@ -39,41 +38,9 @@ function createNotification(activity) {
 
   rp.post({uri: Microservices.notification.uri + '/notification/new', body:data}).then((res) => {
     console.log('Res', res);
-
-
-    // callback(null, {activities: activities, selector: selector, hasMore: (activities.length === 30)});
   }).catch((err) => {
     console.log('Error', err);
-
-    // callback(null, {activities: [], selector: selector, hasMore: false});
   });
-
-
-  // let options = {
-  //   host: Microservices.notification.uri,
-  //   port: 80,
-  //   path: '/notification/new',
-  //   method: 'POST',
-  //   headers : {
-  //     'Content-Type': 'application/json',
-  //     'Cache-Control': 'no-cache',
-  //     'Content-Length': data.length
-  //   }
-  // };
-
-  // let req = http.request(options, (res) => {
-  //   // console.log('STATUS: ' + res.statusCode);
-  //   // console.log('HEADERS: ' + JSON.stringify(res.headers));
-  //   res.setEncoding('utf8');
-  //   res.on('data', (chunk) => {
-  //     // console.log('Response: ', chunk);
-  //   });
-  // });
-  // req.on('error', (e) => {
-  //   console.log('problem with request: ' + e.message);
-  // });
-  // req.write(data);
-  // req.end();
 }
 
 module.exports = {
@@ -364,64 +331,16 @@ function getSubdecksAndSlides(content_kind, id) {
         } catch(e) {
           console.log(e); // error in the above string (in this case, yes)!
         }
-        // if (res.statusCode === 200) {//user is found
-        //   let parsed = JSON.parse(res);
-        //   username = parsed.username;
-        //   avatar = parsed.picture;
-        // }
-
 
         resolve(arrayOfSubdecksAndSlides);
-
-
-        // callback(null, {activities: activities, selector: selector, hasMore: (activities.length === 30)});
       }).catch((err) => {
         console.log('Error', err);
 
         resolve(arrayOfSubdecksAndSlides);
-        // callback(null, {activities: [], selector: selector, hasMore: false});
       });
     }
   });
 
-  // let myPromise = new Promise((resolve, reject) => {
-  //   if (content_kind === 'slide') {
-  //     resolve([{
-  //       type: content_kind,
-  //       id: id
-  //     }]);
-  //   } else {//if deck => get activities of all its decks and slides
-  //     let arrayOfSubdecksAndSlides = [];
-  //     let options = {
-  //       host: Microservices.deck.uri,
-  //       port: 80,
-  //       path: '/decktree/' + id
-  //     };
-  //
-  //     let req = http.get(options, (res) => {
-  //
-  //       // console.log('HEADERS: ' + JSON.stringify(res.headers));
-  //       res.setEncoding('utf8');
-  //       let body = '';
-  //       res.on('data', (chunk) => {
-  //         // console.log('Response: ', chunk);
-  //         body += chunk;
-  //       });
-  //       res.on('end', () => {
-  //         if (res.statusCode === 200) {//deck found
-  //           let parsed = JSON.parse(body);
-  //           arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
-  //         }
-  //         resolve(arrayOfSubdecksAndSlides);
-  //       });
-  //
-  //     });
-  //     req.on('error', (e) => {
-  //       console.log('problem with request: ' + e.message);
-  //       reject(e);
-  //     });
-  //   }
-  // });
   return myPromise;
 }
 
@@ -441,13 +360,9 @@ function getArrayOfChildren(node) {//recursive
 //insert author data using user microservice
 function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
-
-
     let username = 'unknown';
     let avatar = '';
     rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
-      console.log('Res', res);
-
       try {
         let parsed = JSON.parse(res);
         username = parsed.username;
@@ -455,11 +370,6 @@ function insertAuthor(activity) {
       } catch(e) {
         console.log(e); // error in the above string (in this case, yes)!
       }
-      // if (res.statusCode === 200) {//user is found
-      //   let parsed = JSON.parse(res);
-      //   username = parsed.username;
-      //   avatar = parsed.picture;
-      // }
 
       activity.author = {
         id: activity.user_id,
@@ -468,12 +378,6 @@ function insertAuthor(activity) {
       };
       resolve(activity);
 
-
-
-
-
-
-      // callback(null, {activities: activities, selector: selector, hasMore: (activities.length === 30)});
     }).catch((err) => {
       console.log('Error', err);
       activity.author = {
@@ -482,47 +386,8 @@ function insertAuthor(activity) {
         avatar: avatar
       };
       resolve(activity);
-      // callback(null, {activities: [], selector: selector, hasMore: false});
     });
   });
-
-// let myPromise = new Promise((resolve, reject) => {
-//
-//     let options = {
-//       host: Microservices.user.uri,
-//       port: 80,
-//       path: '/user/' + activity.user_id
-//     };
-//
-//     let req = http.get(options, (res) => {
-//       // console.log('HEADERS: ' + JSON.stringify(res.headers));
-//       res.setEncoding('utf8');
-//       let body = '';
-//       res.on('data', (chunk) => {
-//         // console.log('Response: ', chunk);
-//         body += chunk;
-//       });
-//       res.on('end', () => {
-//         let username = 'unknown';
-//         let avatar = '';
-//         if (res.statusCode === 200) {//user is found
-//           let parsed = JSON.parse(body);
-//           username = parsed.username;
-//           avatar = parsed.picture;
-//         }
-//         activity.author = {
-//           id: activity.user_id,
-//           username: username,
-//           avatar: avatar
-//         };
-//         resolve(activity);
-//       });
-//     });
-//     req.on('error', (e) => {
-//       console.log('problem with request: ' + e.message);
-//       reject(e);
-//     });
-//   });
 
   return myPromise;
 }
