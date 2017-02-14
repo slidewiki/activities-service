@@ -322,7 +322,6 @@ function getSubdecksAndSlides(content_kind, id) {
     } else {//if deck => get activities of all its decks and slides
       let arrayOfSubdecksAndSlides = [];
       rp.get({uri: Microservices.deck.uri +  '/decktree/' + id}).then((res) => {
-        console.log('Res', res);
 
         try {
           let parsed = JSON.parse(res);
