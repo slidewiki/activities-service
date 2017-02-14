@@ -36,7 +36,10 @@ function createNotification(activity) {
 
   let data = JSON.stringify(notification);
 
-  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data});
+  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data})
+    .catch((e) => {
+      console.log('problem with createNotification: ' + e);
+    });
 }
 
 module.exports = {
