@@ -9,7 +9,8 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
   co = require('../common');
 
 const Microservices = require('../configs/microservices');
-let http = require('http');
+// let http = require('http');
+let rp = require('request-promise-native');
 
 //Send request to insert new notification
 function createNotification(activity) {
@@ -34,31 +35,11 @@ function createNotification(activity) {
   notification.activity_id = activity.id;
 
   let data = JSON.stringify(notification);
-  let options = {
-    host: Microservices.notification.uri,
-    port: 80,
-    path: '/notification/new',
-    method: 'POST',
-    headers : {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      'Content-Length': data.length
-    }
-  };
 
-  let req = http.request(options, (res) => {
-    // console.log('STATUS: ' + res.statusCode);
-    // console.log('HEADERS: ' + JSON.stringify(res.headers));
-    res.setEncoding('utf8');
-    res.on('data', (chunk) => {
-      // console.log('Response: ', chunk);
+  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data})
+    .catch((e) => {
+      console.log('problem with createNotification: ' + e);
     });
-  });
-  req.on('error', (e) => {
-    console.log('problem with request: ' + e.message);
-  });
-  req.write(data);
-  req.end();
 }
 
 module.exports = {
@@ -340,36 +321,25 @@ function getSubdecksAndSlides(content_kind, id) {
       }]);
     } else {//if deck => get activities of all its decks and slides
       let arrayOfSubdecksAndSlides = [];
-      let options = {
-        host: Microservices.deck.uri,
-        port: 80,
-        path: '/decktree/' + id
-      };
+      rp.get({uri: Microservices.deck.uri +  '/decktree/' + id}).then((res) => {
+        console.log('Res', res);
 
-      let req = http.get(options, (res) => {
+        try {
+          let parsed = JSON.parse(res);
+          arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
+        } catch(e) {
+          console.log(e);
+        }
 
-        // console.log('HEADERS: ' + JSON.stringify(res.headers));
-        res.setEncoding('utf8');
-        let body = '';
-        res.on('data', (chunk) => {
-          // console.log('Response: ', chunk);
-          body += chunk;
-        });
-        res.on('end', () => {
-          if (res.statusCode === 200) {//deck found
-            let parsed = JSON.parse(body);
-            arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
-          }
-          resolve(arrayOfSubdecksAndSlides);
-        });
+        resolve(arrayOfSubdecksAndSlides);
+      }).catch((err) => {
+        console.log('Error', err);
 
-      });
-      req.on('error', (e) => {
-        console.log('problem with request: ' + e.message);
-        reject(e);
+        resolve(arrayOfSubdecksAndSlides);
       });
     }
   });
+
   return myPromise;
 }
 
@@ -389,40 +359,32 @@ function getArrayOfChildren(node) {//recursive
 //insert author data using user microservice
 function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
+    let username = 'unknown';
+    let avatar = '';
+    rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
+      try {
+        let parsed = JSON.parse(res);
+        username = parsed.username;
+        avatar = parsed.picture;
+      } catch(e) {
+        console.log(e);
+      }
 
-    let options = {
-      host: Microservices.user.uri,
-      port: 80,
-      path: '/user/' + activity.user_id
-    };
+      activity.author = {
+        id: activity.user_id,
+        username: username,
+        avatar: avatar
+      };
+      resolve(activity);
 
-    let req = http.get(options, (res) => {
-      // console.log('HEADERS: ' + JSON.stringify(res.headers));
-      res.setEncoding('utf8');
-      let body = '';
-      res.on('data', (chunk) => {
-        // console.log('Response: ', chunk);
-        body += chunk;
-      });
-      res.on('end', () => {
-        let username = 'unknown';
-        let avatar = '';
-        if (res.statusCode === 200) {//user is found
-          let parsed = JSON.parse(body);
-          username = parsed.username;
-          avatar = parsed.picture;
-        }
-        activity.author = {
-          id: activity.user_id,
-          username: username,
-          avatar: avatar
-        };
-        resolve(activity);
-      });
-    });
-    req.on('error', (e) => {
-      console.log('problem with request: ' + e.message);
-      reject(e);
+    }).catch((err) => {
+      console.log('Error', err);
+      activity.author = {
+        id: activity.user_id,
+        username: username,
+        avatar: avatar
+      };
+      resolve(activity);
     });
   });
 
