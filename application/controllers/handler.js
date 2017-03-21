@@ -68,27 +68,27 @@ module.exports = {
     return addContentTitleAndOwnerIfMissing(request.payload)
       .then((activity) => {
         activitiesDB.insert(activity).then((inserted) => {
-        //console.log('inserted: ', inserted);
-        if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
-          throw inserted;
-        else {
-          return insertAuthor(inserted.ops[0]).then((activity) => {
-            activity = co.rewriteID(activity);
-            createNotification(activity);
-            reply(activity);
-          }).catch((error) => {
-            tryRequestLog(request, 'error', error);
-            reply(boom.badImplementation());
-          });
-        }
+          //console.log('inserted: ', inserted);
+          if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
+            throw inserted;
+          else {
+            return insertAuthor(inserted.ops[0]).then((activity) => {
+              activity = co.rewriteID(activity);
+              createNotification(activity);
+              reply(activity);
+            }).catch((error) => {
+              tryRequestLog(request, 'error', error);
+              reply(boom.badImplementation());
+            });
+          }
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
+        });
       }).catch((error) => {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
   },
 
   //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
