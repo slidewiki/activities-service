@@ -65,20 +65,26 @@ module.exports = {
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
-    return activitiesDB.insert(request.payload).then((inserted) => {
-      //console.log('inserted: ', inserted);
-      if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
-        throw inserted;
-      else {
-        return insertAuthor(inserted.ops[0]).then((activity) => {
-          activity = co.rewriteID(activity);
-          createNotification(activity);
-          reply(activity);
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }
+    return addContentTitleAndOwnerIfMissing(request.payload)
+      .then((activity) => {
+        activitiesDB.insert(activity).then((inserted) => {
+        //console.log('inserted: ', inserted);
+        if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
+          throw inserted;
+        else {
+          return insertAuthor(inserted.ops[0]).then((activity) => {
+            activity = co.rewriteID(activity);
+            createNotification(activity);
+            reply(activity);
+          }).catch((error) => {
+            tryRequestLog(request, 'error', error);
+            reply(boom.badImplementation());
+          });
+        }
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
     }).catch((error) => {
       tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
@@ -385,6 +391,58 @@ function insertAuthor(activity) {
       };
       resolve(activity);
     });
+  });
+
+  return myPromise;
+}
+
+//find content title and ownerId using deck microservice
+function addContentTitleAndOwnerIfMissing(activity) {
+  let myPromise = new Promise((resolve, reject) => {
+    if (activity.content_name === undefined) {
+      let title = '';
+      let ownerId = 0;
+
+      let contentIdParts = activity.content_id.split('-');
+      let contentRevisionId = (contentIdParts.length > 1) ? contentIdParts[contentIdParts.length - 1] : undefined;
+      rp.get({uri: Microservices.deck.uri + '/' + activity.content_kind + '/' + activity.content_id}).then((res) => {
+        try {
+          let parsed = JSON.parse(res);
+          if (parsed.user) {
+            ownerId = parsed.user;
+          }
+          if (parsed.revisions !== undefined && parsed.revisions.length > 0 && parsed.revisions[0] !== null) {
+            //get title from result
+            let contentRevision = (contentRevisionId !== undefined) ? parsed.revisions.find((revision) =>  String(revision.id) ===  String(contentRevisionId)) : undefined;
+            if (contentRevision !== undefined) {
+              ownerId = contentRevision.user;
+              title = contentRevision.title;
+            } else {//if revision from content_id is not found take data from active revision
+              const activeRevisionId = parsed.active;
+              let activeRevision = parsed.revisions[parsed.revisions.length - 1];//if active is not defined take the last revision in array
+              if (activeRevisionId !== undefined) {
+                activeRevision = parsed.revisions.find((revision) =>  String(revision.id) ===  String(activeRevisionId));
+              }
+              if (activeRevision !== undefined) {
+                title = activeRevision.title;
+              }
+            }
+          }
+        } catch(e) {
+          console.log(e);
+        }
+        activity.content_name = title;
+        activity.content_owner_id = ownerId;
+        resolve(activity);
+      }).catch((err) => {
+        console.log('Error', err);
+        activity.content_name = '';
+        activity.content_owner_id = 0;
+        resolve(activity);
+      });
+    } else {
+      resolve(activity);
+    }
   });
 
   return myPromise;
