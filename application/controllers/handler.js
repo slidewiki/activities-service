@@ -366,31 +366,40 @@ function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
     let username = 'unknown';
     let avatar = '';
-    rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
-      try {
-        let parsed = JSON.parse(res);
-        username = parsed.username;
-        avatar = parsed.picture;
-      } catch(e) {
-        console.log(e);
-      }
-
+    if (activity.user_id === undefined) {
       activity.author = {
         id: activity.user_id,
         username: username,
         avatar: avatar
       };
       resolve(activity);
+    } else {
+      rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
+        try {
+          let parsed = JSON.parse(res);
+          username = parsed.username;
+          avatar = parsed.picture;
+        } catch(e) {
+          console.log(e);
+        }
 
-    }).catch((err) => {
-      console.log('Error', err);
-      activity.author = {
-        id: activity.user_id,
-        username: username,
-        avatar: avatar
-      };
-      resolve(activity);
-    });
+        activity.author = {
+          id: activity.user_id,
+          username: username,
+          avatar: avatar
+        };
+        resolve(activity);
+
+      }).catch((err) => {
+        console.log('Error', err);
+        activity.author = {
+          id: activity.user_id,
+          username: username,
+          avatar: avatar
+        };
+        resolve(activity);
+      });
+    }
   });
 
   return myPromise;
