@@ -25,6 +25,8 @@ describe('REST API', () => {
     activity_type: 'add',
     content_id: '000000000000000000000000',
     content_kind: 'slide',
+    content_name: ' ',
+    content_owner_id: '0',
     user_id: '000000000000000000000000'
   };
   let options = {

@@ -401,7 +401,7 @@ function addContentTitleAndOwnerIfMissing(activity) {
   let myPromise = new Promise((resolve, reject) => {
     if (activity.content_name === undefined) {
       let title = '';
-      let ownerId = 0;
+      let ownerId = '0';
 
       let contentIdParts = activity.content_id.split('-');
       let contentRevisionId = (contentIdParts.length > 1) ? contentIdParts[contentIdParts.length - 1] : undefined;
@@ -437,7 +437,7 @@ function addContentTitleAndOwnerIfMissing(activity) {
       }).catch((err) => {
         console.log('Error', err);
         activity.content_name = '';
-        activity.content_owner_id = 0;
+        activity.content_owner_id = '0';
         resolve(activity);
       });
     } else {

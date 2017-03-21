@@ -23,6 +23,8 @@ describe('Activity service', () => {
     activity_type: 'add',
     content_id: '000000000000000000000000',
     content_kind: 'slide',
+    content_name: ' ',
+    content_owner_id: '0',
     user_id: '000000000000000000000000'
   };
   let activityId = '';
@@ -97,13 +99,27 @@ describe('Activity service', () => {
 
     it('Delete activity', () => {
       let req = {
-        payload: {
-          id: activityId
-        }
       };
-      return handler.deleteActivity(req, (result) => {
-        expect(result.msg).to.not.equal(undefined);
-        return;
+      return handler.getAllActivities(req, (result) => {
+        let activities = JSON.parse(result);
+        if (activities.length === 0) {
+          expect(1).to.equals(2);
+        }
+        let activityId = activities[0].id;
+        let req = {
+          payload: {
+            id: activityId
+          }
+        };
+        return handler.deleteActivity(req, (result2) => {
+          expect(result2.msg).to.not.equal(undefined);
+          return;
+        })
+        .catch((Error) => {
+          console.log('Error', Error);
+          throw Error;
+          expect(1).to.equals(2);
+        });
       })
       .catch((Error) => {
         console.log('Error', Error);
