@@ -366,7 +366,7 @@ function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
     let username = 'unknown';
     let avatar = '';
-    if (activity.user_id === undefined) {
+    if (activity.user_id === undefined || activity.user_id === 'undefined') {
       activity.author = {
         id: activity.user_id,
         username: username,
@@ -441,7 +441,7 @@ function addContentTitleAndOwnerIfMissing(activity) {
           console.log(e);
         }
         activity.content_name = title;
-        activity.content_owner_id = ownerId;
+        activity.content_owner_id = String(ownerId);
         resolve(activity);
       }).catch((err) => {
         console.log('Error', err);
