@@ -81,6 +81,29 @@ module.exports = {
       }); //id is created and concatenated automatically
   },
 
+  insertArray: function(activities) {
+    //TODO check for content id to be existant
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => {
+
+        try {
+          activities.forEach((activity) => {
+            activity.timestamp = new Date();
+            let valid = activityModel(activity);
+            if (!valid) {
+              return activityModel.errors;
+            }
+          });
+
+          return col.insertMany(activities);
+        } catch (e) {
+          console.log('validation failed', e);
+        }
+        return;
+      }); //id is created and concatenated automatically
+  },
+
   replace: function(id, activity) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
