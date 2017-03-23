@@ -141,7 +141,54 @@ module.exports = function(server) {
           }),
           react_type: Joi.string(),
           rate_type: Joi.string()
-        }).requiredKeys('content_id', 'user_id', 'activity_type'),
+        }).requiredKeys('content_id', 'user_id', 'activity_type')
+      },
+      tags: ['api'],
+      description: 'Create a new activity'
+    }
+  });
+
+
+  //Create new activities (by payload) and return them (...). Validate payload
+  server.route({
+    method: 'POST',
+    path: '/activities/new',
+    handler: handlers.newActivities,
+    config: {
+      validate: {
+        payload: Joi.array().items(
+          Joi.object().keys({
+            activity_type: Joi.string(),
+            user_id: Joi.string(),
+            //user_id: Joi.string().alphanum().lowercase(),
+            content_id: Joi.string(),
+            //content_id: Joi.string().alphanum().lowercase(),
+            content_kind: Joi.string().valid('deck', 'slide', 'group'),
+            content_name: Joi.string(),
+            content_owner_id: Joi.string(),
+            translation_info: Joi.object().keys({
+              content_id: Joi.string(),
+              //content_id: Joi.string().alphanum().lowercase(),
+              language: Joi.string()
+            }),
+            share_info: Joi.object().keys({
+              postURI: Joi.string(),
+              platform: Joi.string()
+            }),
+            comment_info: Joi.object().keys({
+              comment_id: Joi.string(),
+              //comment_id: Joi.string().alphanum().lowercase(),
+              text: Joi.string()
+            }),
+            use_info: Joi.object().keys({
+              target_id: Joi.string(),
+              //target_id: Joi.string().alphanum().lowercase(),
+              target_name: Joi.string()
+            }),
+            react_type: Joi.string(),
+            rate_type: Joi.string()
+          }).requiredKeys('content_id', 'user_id', 'activity_type')
+        )
       },
       tags: ['api'],
       description: 'Create a new activity'
