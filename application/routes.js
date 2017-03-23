@@ -148,7 +148,6 @@ module.exports = function(server) {
     }
   });
 
-
   //Create new activities (by payload) and return them (...). Validate payload
   server.route({
     method: 'POST',
