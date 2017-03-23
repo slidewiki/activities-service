@@ -190,7 +190,7 @@ module.exports = function(server) {
         )
       },
       tags: ['api'],
-      description: 'Create a new activity'
+      description: 'Create new activities'
     }
   });
 
