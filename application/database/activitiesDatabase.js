@@ -1,7 +1,7 @@
 /*
 Controller for handling mongodb and the data model activity while providing CRUD'ish.
 */
-
+ 
 'use strict';
 
 const helper = require('./helper'),
