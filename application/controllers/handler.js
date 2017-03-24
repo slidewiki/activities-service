@@ -65,9 +65,18 @@ module.exports = {
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
-    return addContentTitleAndOwnerIfMissing(request.payload)
-      .then((activity) => {
-        activitiesDB.insert(activity).then((inserted) => {
+    return findContentTitleAndOwnerIfNeeded(request.payload)
+      .then((contentTitleAndOwner) => {
+        if (contentTitleAndOwner.title !== '') {
+          request.payload.content_name = contentTitleAndOwner.title;
+          request.payload.content_owner_id = contentTitleAndOwner.ownerId;
+          let contentIdParts = request.payload.content_id.split('-');
+          if (contentIdParts.length === 1) {//there is no revision id
+            request.payload.content_id += '-' + contentTitleAndOwner.revisionId;
+          }
+        }
+
+        activitiesDB.insert(request.payload).then((inserted) => {
           //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
             throw inserted;
@@ -406,9 +415,9 @@ function insertAuthor(activity) {
 }
 
 //find content title and ownerId using deck microservice
-function addContentTitleAndOwnerIfMissing(activity) {
+function findContentTitleAndOwnerIfNeeded(activity) {
   let myPromise = new Promise((resolve, reject) => {
-    if (activity.content_name === undefined) {
+    if (activity.content_kind !== 'slide' && activity.content_kind !== 'deck' ) {
       let title = '';
       let ownerId = '0';
 
@@ -434,23 +443,24 @@ function addContentTitleAndOwnerIfMissing(activity) {
               }
               if (activeRevision !== undefined) {
                 title = activeRevision.title;
+                if (contentRevisionId === undefined) {
+                  contentRevisionId = activeRevision.id;
+                }
               }
             }
           }
         } catch(e) {
           console.log(e);
         }
-        activity.content_name = title;
-        activity.content_owner_id = String(ownerId);
-        resolve(activity);
+
+        resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
       }).catch((err) => {
         console.log('Error', err);
-        activity.content_name = '';
-        activity.content_owner_id = '0';
-        resolve(activity);
+
+        resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
       });
     } else {
-      resolve(activity);
+      resolve({title: '', ownerId: '', revisionId: ''});
     }
   });
 
