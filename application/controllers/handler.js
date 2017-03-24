@@ -460,7 +460,7 @@ function insertAuthor(activity) {
 //find content title and ownerId using deck microservice
 function findContentTitleAndOwnerIfNeeded(activity) {
   let myPromise = new Promise((resolve, reject) => {
-    if (activity.content_kind !== 'slide' && activity.content_kind !== 'deck' ) {
+    if (activity.content_kind === 'slide' || activity.content_kind === 'deck' ) {
       let title = '';
       let ownerId = '0';
 
@@ -487,7 +487,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
               if (activeRevision !== undefined) {
                 title = activeRevision.title;
                 if (contentRevisionId === undefined) {
-                  contentRevisionId = activeRevision.id;
+                  contentRevisionId = activeRevisionId;
                 }
               }
             }
