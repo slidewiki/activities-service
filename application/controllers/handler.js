@@ -100,6 +100,49 @@ module.exports = {
       });
   },
 
+  //Create Activities with new ids and payload or return INTERNAL_SERVER_ERROR
+  newActivities: function(request, reply) {
+    let activities = request.payload;
+    let arrayOfPromises = [];
+    activities.forEach((activity) => {
+      let promise = addContentTitleAndOwnerIfMissing(activity);
+      arrayOfPromises.push(promise);
+    });
+
+    return Promise.all(arrayOfPromises)
+      .then((activities) => {
+        activitiesDB.insertArray(activities).then((inserted) => {
+          //console.log('inserted: ', inserted);
+          if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
+            throw inserted;
+          else {
+            let arrayOfAuthorPromises = [];
+            inserted.ops.forEach((activity) => {
+              let promise = insertAuthor(activity);
+              arrayOfAuthorPromises.push(promise);
+            });
+            return Promise.all(arrayOfAuthorPromises)
+              .then((activities) => {
+                activities.forEach((activity) => {
+                  activity = co.rewriteID(activity);
+                  createNotification(activity);
+                });
+                reply(activities);
+              }).catch((error) => {
+                tryRequestLog(request, 'error', error);
+                reply(boom.badImplementation());
+              });
+          }
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
+        });
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
+  },
+
   //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
   updateActivity: function(request, reply) {
     return activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
@@ -262,7 +305,7 @@ module.exports = {
           arrayOfAuthorPromisses.push(promise);
         });
 
-        Promise.all(arrayOfAuthorPromisses).then(() => { 
+        Promise.all(arrayOfAuthorPromisses).then(() => {
           let jsonReply = JSON.stringify(activities);
           reply(jsonReply);
 
