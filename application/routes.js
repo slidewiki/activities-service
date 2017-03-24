@@ -10,7 +10,7 @@ const Joi = require('joi'),
 module.exports = function(server) {
   //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
-    method: 'GET',
+    method: 'GET', 
     path: '/activities/{content_kind}/{id}',
     handler: handlers.getActivities,
     config: {
