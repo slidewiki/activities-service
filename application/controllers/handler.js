@@ -105,7 +105,7 @@ module.exports = {
     let activities = request.payload;
     let arrayOfPromises = [];
     activities.forEach((activity) => {
-      let promise = addContentTitleAndOwnerIfMissing(activity);
+      let promise = findContentTitleAndOwnerIfNeeded(activity);
       arrayOfPromises.push(promise);
     });
 
@@ -167,9 +167,17 @@ module.exports = {
     });
   },
 
-  //Delete Activities with content id id
+  //Delete Activities with content , type, and user
   deleteActivities: function(request, reply) {
-    return activitiesDB.deleteAllWithContentID(encodeURIComponent(request.payload.content_id)).then(() =>
+    const content_kind = (request.payload.content_kind) ? encodeURIComponent(request.payload.content_kind) : undefined;
+    let content_id = (request.payload.content_id) ? encodeURIComponent(request.payload.content_id) : undefined;
+    const activity_type = (request.payload.activity_type) ? encodeURIComponent(request.payload.activity_type) : undefined;
+    const user_id = (request.payload.user_id) ? encodeURIComponent(request.payload.user_id) : undefined;
+
+    if (request.payload.all_revisions !== undefined && request.payload.all_revisions === true) {
+      content_id = new RegExp('^' + content_id.split('-')[0]);
+    }
+    return activitiesDB.deleteAllWithContentTypeUser(content_kind, content_id, activity_type, user_id).then(() =>
       reply({'msg': 'activities are successfully deleted...'})
     ).catch((error) => {
       tryRequestLog(request, 'error', error);
@@ -178,6 +186,7 @@ module.exports = {
   },
 
   //Get All Activities from database for the content_kind and id in the request, limited by the number of documents
+  //In case of a deck -  include its subdecks and slides
   getActivities: function(request, reply) {
     let content_kind = request.params.content_kind;
     if (content_kind === undefined) {// this is just to serve requests from old front-end version
@@ -234,6 +243,62 @@ module.exports = {
       tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());
     });
+  },
+
+  //Get All Activities of specified type from database for the content_kind and id in the request
+  getActivitiesOfType: function(request, reply) {
+    let content_kind = request.params.content_kind;
+    let activity_type = request.params.activity_type;
+    let content_id = request.params.id;
+
+    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+      .then((activities) => {
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity);
+          arrayOfAuthorPromisses.push(promise);
+        });
+
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activities);
+          reply(jsonReply);
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
+        });
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
+  },
+
+  //Get All Activities of specified type from database for the content_kind and id (all revisions) in the request
+  getActivitiesOfTypeAllRevisions: function(request, reply) {
+    let content_kind = request.params.content_kind;
+    let activity_type = request.params.activity_type;
+    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
+
+    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+      .then((activities) => {
+        let arrayOfAuthorPromisses = [];
+        activities.forEach((activity) => {
+          co.rewriteID(activity);
+          let promise = insertAuthor(activity);
+          arrayOfAuthorPromisses.push(promise);
+        });
+
+        Promise.all(arrayOfAuthorPromisses).then(() => {
+          let jsonReply = JSON.stringify(activities);
+          reply(jsonReply);
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
+        });
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
   },
 
   //Get All Activities from database for the content_kind and id in the request

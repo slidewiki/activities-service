@@ -10,7 +10,7 @@ const Joi = require('joi'),
 module.exports = function(server) {
   //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
-    method: 'GET', 
+    method: 'GET',
     path: '/activities/{content_kind}/{id}',
     handler: handlers.getActivities,
     config: {
@@ -23,6 +23,44 @@ module.exports = function(server) {
       },
       tags: ['api'],
       description: 'Get a list of activities'
+    }
+  });
+
+  //Get activities of specific type with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
+  server.route({
+    method: 'GET',
+    path: '/activities/{activity_type}/{content_kind}/{id}',
+    handler: handlers.getActivitiesOfType,
+    config: {
+      validate: {
+        params: {
+          activity_type: Joi.string(),
+          content_kind: Joi.string().valid('deck', 'slide'),
+          id: Joi.string()
+          //  id: Joi.string().alphanum().lowercase()
+        },
+      },
+      tags: ['api'],
+      description: 'Get a list of activities of specified type'
+    }
+  });
+
+  //Get activities of specific type with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
+  server.route({
+    method: 'GET',
+    path: '/activities/allrevisions/{activity_type}/{content_kind}/{id}',
+    handler: handlers.getActivitiesOfTypeAllRevisions,
+    config: {
+      validate: {
+        params: {
+          activity_type: Joi.string(),
+          content_kind: Joi.string().valid('deck', 'slide'),
+          id: Joi.string()
+          //  id: Joi.string().alphanum().lowercase()
+        },
+      },
+      tags: ['api'],
+      description: 'Get a list of activities of specified type'
     }
   });
 
@@ -265,12 +303,15 @@ module.exports = function(server) {
     config: {
       validate: {
         payload: {
-          content_id: Joi.string()
-          //content_id: Joi.string().alphanum().lowercase()
+          content_kind: Joi.string().valid('deck', 'slide', 'group'),
+          content_id: Joi.string(),
+          activity_type: Joi.string(),
+          user_id: Joi.string(),
+          all_revisions:  Joi.boolean()
         },
       },
       tags: ['api'],
-      description: 'Delete all activities for the content (example id: 8)'
+      description: 'Delete all activities for the specified content, type, user'
     }
   });
 };
