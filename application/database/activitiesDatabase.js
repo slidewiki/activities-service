@@ -141,6 +141,14 @@ module.exports = {
       }));
   },
 
+  deleteAllWithContentID: function(identifier) {
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.remove({
+        content_id: identifier
+      }));
+  },
+
   deleteAllWithContentTypeUser: function(content_kind, content_id, activity_type, user_id) {
     let query = {};
     if (content_kind !== undefined) {
