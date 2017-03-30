@@ -1,7 +1,7 @@
 /*
 Controller for handling mongodb and the data model activity while providing CRUD'ish.
 */
- 
+
 'use strict';
 
 const helper = require('./helper'),
@@ -22,6 +22,14 @@ module.exports = {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
       .then((col) => col.find({content_kind: content_kind, content_id: identifier }))
+      .then((stream) => stream.sort({timestamp: -1}))
+      .then((stream) => stream.toArray());
+  },
+
+  getAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier) {
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.find({activity_type: activity_type, content_kind: content_kind, content_id: identifier }))
       .then((stream) => stream.sort({timestamp: -1}))
       .then((stream) => stream.toArray());
   },
@@ -133,12 +141,24 @@ module.exports = {
       }));
   },
 
-  deleteAllWithContentID: function(identifier) {
+  deleteAllWithContentTypeUser: function(content_kind, content_id, activity_type, user_id) {
+    let query = {};
+    if (content_kind !== undefined) {
+      query.content_kind = content_kind;
+    }
+    if (content_id !== undefined) {
+      query.content_id = content_id;
+    }
+    if (activity_type !== undefined) {
+      query.activity_type = activity_type;
+    }
+    if (user_id !== undefined) {
+      query.user_id = user_id;
+    }
+
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.remove({
-        content_id: identifier
-      }));
+      .then((col) => col.remove(query));
   },
 
   deleteAll: function() {
