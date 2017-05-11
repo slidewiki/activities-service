@@ -19,7 +19,7 @@ const activity = {
   properties: {
     activity_type: {
       type: 'string',
-      enum: ['translate', 'share', 'add', 'edit', 'comment', 'reply', 'use', 'react', 'rate', 'download', 'joined', 'left']
+      enum: ['translate', 'share', 'add', 'edit', 'comment', 'reply', 'use', 'react', 'rate', 'download', 'fork', 'joined', 'left']
     },
     timestamp: {
       type: 'object'
