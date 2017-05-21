@@ -164,7 +164,7 @@ module.exports = function(server) {
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
-            postURI: Joi.string(),
+            // postURI: Joi.string(),
             platform: Joi.string()
           }),
           comment_info: Joi.object().keys({
@@ -209,7 +209,7 @@ module.exports = function(server) {
               language: Joi.string()
             }),
             share_info: Joi.object().keys({
-              postURI: Joi.string(),
+              // postURI: Joi.string(),
               platform: Joi.string()
             }),
             comment_info: Joi.object().keys({
@@ -256,7 +256,7 @@ module.exports = function(server) {
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
-            postURI: Joi.string(),
+            // postURI: Joi.string(),
             platform: Joi.string()
           }),
           comment_info: Joi.object().keys({
