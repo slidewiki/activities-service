@@ -453,6 +453,7 @@ function getSubdecksAndSlides(content_kind, id) {
           arrayOfSubdecksAndSlides = getArrayOfChildren(parsed);
         } catch(e) {
           console.log(e);
+          resolve(arrayOfSubdecksAndSlides);
         }
 
         resolve(arrayOfSubdecksAndSlides);
@@ -500,6 +501,12 @@ function insertAuthor(activity) {
           avatar = parsed.picture;
         } catch(e) {
           console.log(e);
+          activity.author = {
+            id: activity.user_id,
+            username: username,
+            avatar: avatar
+          };
+          resolve(activity);
         }
 
         activity.author = {
@@ -568,6 +575,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
             }
           } catch(e) {
             console.log(e);
+            resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
           }
 
           resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});

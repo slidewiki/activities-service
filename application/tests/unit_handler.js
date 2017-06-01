@@ -21,10 +21,10 @@ describe('Activity service', () => {
 
   const activity = {
     activity_type: 'add',
-    content_id: '000000000000000000000000',
+    content_id: '000000000000000000000000-1',
     content_kind: 'slide',
     content_name: ' ',
-    content_owner_id: '0',
+    content_owner_id: '000000000000000000000000',
     user_id: '000000000000000000000000'
   };
   let activityId = '';

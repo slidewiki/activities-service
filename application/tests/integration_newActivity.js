@@ -23,10 +23,10 @@ describe('REST API', () => {
 
   let activity = {
     activity_type: 'add',
-    content_id: '000000000000000000000000',
+    content_id: '000000000000000000000000-1',
     content_kind: 'slide',
     content_name: ' ',
-    content_owner_id: '0',
+    content_owner_id: '000000000000000000000000',
     user_id: '000000000000000000000000'
   };
   let options = {
@@ -47,7 +47,7 @@ describe('REST API', () => {
         response.payload.should.be.a('string');
         let payload = JSON.parse(response.payload);
         payload.should.be.an('object').and.contain.keys('content_id', 'timestamp', 'user_id');
-        payload.content_id.should.equal('000000000000000000000000');
+        payload.content_id.should.equal('000000000000000000000000-1');
         payload.user_id.should.equal('000000000000000000000000');
         done();
       });

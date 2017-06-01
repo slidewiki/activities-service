@@ -37,15 +37,17 @@ describe('Database', () => {
     it('should return the activity when inserting one', () => {
       let activity = {
         activity_type: 'add',
-        content_id: '112233445566778899000671',
+        content_id: '112233445566778899000671-1',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let res = db.insert(activity);
       return Promise.all([
         res.should.be.fulfilled.and.eventually.not.be.empty,
         res.should.eventually.have.property('ops').that.is.not.empty,
-        res.should.eventually.have.deep.property('ops[0]').that.has.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'user_id'),
+        res.should.eventually.have.deep.property('ops[0]').that.has.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'content_name', 'content_owner_id', 'user_id'),
         res.should.eventually.have.deep.property('ops[0].activity_type', activity.activity_type)
       ]);
     });
@@ -53,15 +55,17 @@ describe('Database', () => {
     it('should get an previously inserted activity', () => {
       let activity = {
         activity_type: 'add',
-        content_id: '112233445566778899000671',
+        content_id: '112233445566778899000671-1',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
       let res = ins.then((ins) => db.get(ins.ops[0]._id));
       return Promise.all([
         res.should.be.fulfilled.and.eventually.not.be.empty,
-        res.should.eventually.have.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'user_id'),
+        res.should.eventually.have.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'content_name', 'content_owner_id', 'user_id'),
         res.should.eventually.have.property('activity_type', activity.activity_type)
       ]);
     });
@@ -69,14 +73,18 @@ describe('Database', () => {
     it('should be able to replace an previously inserted activity', () => {
       let activity = {
         activity_type: 'add',
-        content_id: '112233445566778899000671',
+        content_id: '112233445566778899000671-1',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let activity2 = {
         activity_type: 'share',
-        content_id: '112233445566778899000671',
+        content_id: '112233445566778899000671-1',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
@@ -84,7 +92,7 @@ describe('Database', () => {
       res = ins.then((ins) => db.get(ins.ops[0]._id));
       return Promise.all([
         res.should.be.fulfilled.and.eventually.not.be.empty,
-        res.should.eventually.have.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'user_id'),
+        res.should.eventually.have.all.keys('_id', 'activity_type', 'timestamp', 'content_id', 'content_kind', 'content_name', 'content_owner_id', 'user_id'),
         res.should.eventually.have.property('activity_type', 'share')
       ]);
     });
@@ -94,6 +102,8 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
 
@@ -107,12 +117,16 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let activity2 = {
         activity_type: 'share',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
@@ -125,12 +139,16 @@ describe('Database', () => {
         activity_type: 'add',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let activity2 = {
         activity_type: 'share',
         content_id: '112233445566778899000671',
         content_kind: 'slide',
+        content_name: ' ',
+        content_owner_id: '000000000000000000000000',
         user_id: '000000000000000000000000'
       };
       let ins = db.insert(activity);
