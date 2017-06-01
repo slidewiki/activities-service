@@ -125,7 +125,9 @@ module.exports = {
               .then((activities) => {
                 activities.forEach((activity) => {
                   activity = co.rewriteID(activity);
-                  createNotification(activity);
+                  if (activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
+                    createNotification(activity);
+                  }
                 });
                 reply(activities);
               }).catch((error) => {
@@ -526,47 +528,56 @@ function insertAuthor(activity) {
 function findContentTitleAndOwnerIfNeeded(activity) {
   let myPromise = new Promise((resolve, reject) => {
     if (activity.content_kind === 'slide' || activity.content_kind === 'deck' ) {
-      let title = '';
-      let ownerId = '0';
+      let title = activity.content_name;
+      let ownerId = activity.content_owner_id;
 
       let contentIdParts = activity.content_id.split('-');
       let contentRevisionId = (contentIdParts.length > 1) ? contentIdParts[contentIdParts.length - 1] : undefined;
-      rp.get({uri: Microservices.deck.uri + '/' + activity.content_kind + '/' + activity.content_id}).then((res) => {
-        try {
-          let parsed = JSON.parse(res);
-          if (parsed.user) {
-            ownerId = parsed.user;
-          }
-          if (parsed.revisions !== undefined && parsed.revisions.length > 0 && parsed.revisions[0] !== null) {
-            //get title from result
-            let contentRevision = (contentRevisionId !== undefined) ? parsed.revisions.find((revision) =>  String(revision.id) ===  String(contentRevisionId)) : undefined;
-            if (contentRevision !== undefined) {
-              ownerId = contentRevision.user;
-              title = contentRevision.title;
-            } else {//if revision from content_id is not found take data from active revision
-              const activeRevisionId = parsed.active;
-              let activeRevision = parsed.revisions[parsed.revisions.length - 1];//if active is not defined take the last revision in array
-              if (activeRevisionId !== undefined) {
-                activeRevision = parsed.revisions.find((revision) =>  String(revision.id) ===  String(activeRevisionId));
-              }
-              if (activeRevision !== undefined) {
-                title = activeRevision.title;
-                if (contentRevisionId === undefined) {
-                  contentRevisionId = activeRevisionId;
+      if (title === undefined || ownerId === undefined || contentRevisionId === undefined) {// is it needed to call the deck-service?
+        rp.get({uri: Microservices.deck.uri + '/' + activity.content_kind + '/' + activity.content_id}).then((res) => {
+          try {
+            let parsed = JSON.parse(res);
+            if (ownerId === undefined && parsed.user) {
+              ownerId = parsed.user;
+            }
+            if (parsed.revisions !== undefined && parsed.revisions.length > 0 && parsed.revisions[0] !== null) {
+              //get title from result
+              let contentRevision = (contentRevisionId !== undefined) ? parsed.revisions.find((revision) =>  String(revision.id) ===  String(contentRevisionId)) : undefined;
+              if (contentRevision !== undefined) {
+                if (ownerId === undefined) {
+                  ownerId = contentRevision.user;
+                }
+                if (title === undefined) {
+                  title = contentRevision.title;
+                }
+              } else {//if revision from content_id is not found take data from active revision
+                const activeRevisionId = parsed.active;
+                let activeRevision = parsed.revisions[parsed.revisions.length - 1];//if active is not defined take the last revision in array
+                if (activeRevisionId !== undefined) {
+                  activeRevision = parsed.revisions.find((revision) =>  String(revision.id) ===  String(activeRevisionId));
+                }
+                if (activeRevision !== undefined) {
+                  if (title === undefined) {
+                    title = activeRevision.title;
+                  }
+                  if (contentRevisionId === undefined) {
+                    contentRevisionId = activeRevisionId;
+                  }
                 }
               }
             }
+          } catch(e) {
+            console.log(e);
           }
-        } catch(e) {
-          console.log(e);
-        }
 
+          resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
+        }).catch((err) => {
+          console.log('Error', err);
+          resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
+        });
+      } else {
         resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
-      }).catch((err) => {
-        console.log('Error', err);
-
-        resolve({title: title, ownerId: String(ownerId), revisionId: contentRevisionId});
-      });
+      }
     } else {
       resolve({title: '', ownerId: '', revisionId: ''});
     }

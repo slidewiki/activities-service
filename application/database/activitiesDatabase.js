@@ -46,7 +46,12 @@ module.exports = {
     const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
     const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
     const idQuery = {_id: {$in: idArray}};
-    const ownerQuery = {content_owner_id: ownerId};
+    
+    //Modified ownerQuery to exclude documents where user_id i ownerId
+    //This is temporary solution for the user notifications
+    //This will be changed when proper subscription is implemented
+
+    const ownerQuery = {$and: [{content_owner_id: ownerId}, { user_id: { $ne: ownerId } }]};
     const query = (ownerId !== undefined) ?
      {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
      :
