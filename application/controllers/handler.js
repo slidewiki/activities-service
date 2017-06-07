@@ -544,9 +544,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
         rp.get({uri: Microservices.deck.uri + '/' + activity.content_kind + '/' + activity.content_id}).then((res) => {
           try {
             let parsed = JSON.parse(res);
-            if (ownerId === undefined && parsed.user) {
-              ownerId = parsed.user;
-            }
+
             if (parsed.revisions !== undefined && parsed.revisions.length > 0 && parsed.revisions[0] !== null) {
               //get title from result
               let contentRevision = (contentRevisionId !== undefined) ? parsed.revisions.find((revision) =>  String(revision.id) ===  String(contentRevisionId)) : undefined;
@@ -572,6 +570,9 @@ function findContentTitleAndOwnerIfNeeded(activity) {
                   }
                 }
               }
+            }
+            if (ownerId === undefined && parsed.user) {
+              ownerId = parsed.user;
             }
           } catch(e) {
             console.log(e);
