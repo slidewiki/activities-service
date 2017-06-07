@@ -83,7 +83,9 @@ module.exports = {
           else {
             return insertAuthor(inserted.ops[0]).then((activity) => {
               activity = co.rewriteID(activity);
-              createNotification(activity);
+              if (activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
+                createNotification(activity);
+              }
               reply(activity);
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
