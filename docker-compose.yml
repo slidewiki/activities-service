@@ -1,5 +1,5 @@
 activitiesservice:
-  image: slidewiki/activitiesservice
+  image: slidewiki/activitiesservice:latest-dev
   restart: on-failure:5
   expose:
     - "80"
