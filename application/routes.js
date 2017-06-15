@@ -7,6 +7,8 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 const Joi = require('joi'),
   handlers = require('./controllers/handler');
 
+const fanout = require('./controllers/fanout');
+
 module.exports = function(server) {
   //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
@@ -148,6 +150,9 @@ module.exports = function(server) {
     path: '/activity/new',
     handler: handlers.newActivity,
     config: {
+      pre: [
+        { method: fanout.forwardActivity },
+      ],
       validate: {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
