@@ -75,25 +75,6 @@ module.exports = function(server) {
     }
   });
 
-  //Get limited number of activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activities/{id}/more/{start}/{limit}',
-    handler: handlers.getActivities,
-    config: {
-      validate: {
-        params: {
-          id: Joi.string(),
-          //id: Joi.string().alphanum().lowercase(),
-          start: Joi.string(),
-          limit: Joi.string()
-        },
-      },
-      tags: ['api'],
-      description: 'Get a list of {limit} activities starting from {start} )'
-    }
-  });
-
   //Get limited number of activities with content_kind and content id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
     method: 'GET',
@@ -121,7 +102,7 @@ module.exports = function(server) {
     handler: handlers.getActivitiesSubscribed,
     config: {
       tags: ['api'],
-      description: 'Get a list of subscribed activities (example parameter: u112233445566778899000001/s8) )'
+      description: 'Get a list of subscribed activities (example parameter: u16/s8) )'
     }
   });//TODO if the url length is critical -> use POST instead?
 
