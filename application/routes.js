@@ -56,11 +56,28 @@ module.exports = function(server) {
           activity_type: Joi.string(),
           content_kind: Joi.string().valid('deck', 'slide'),
           id: Joi.string()
-          //  id: Joi.string().alphanum().lowercase()
         },
       },
       tags: ['api'],
       description: 'Get a list of activities of specified type'
+    }
+  });
+
+  //Get the number of activities of specific type with content id id from database
+  server.route({
+    method: 'GET',
+    path: '/activities/allrevisions/count/{activity_type}/{content_kind}/{id}',
+    handler: handlers.getActivitiesCountAllRevisions,
+    config: {
+      validate: {
+        params: {
+          activity_type: Joi.string(),
+          content_kind: Joi.string().valid('deck', 'slide'),
+          id: Joi.string()
+        },
+      },
+      tags: ['api'],
+      description: 'Get the number of activities of specified type'
     }
   });
 

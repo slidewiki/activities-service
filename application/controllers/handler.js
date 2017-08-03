@@ -305,44 +305,6 @@ module.exports = {
       });
   },
 
-  //Get All Activities from database for the content_kind and id in the request
-  // getActivities: function(request, reply) { - old version (before getting subactivities)
-  //   //Clean collection and insert mockup activities - only if request.params.id === 0
-  //   return initMockupData(request.params.id)
-  //     // .then(() => activitiesDB.getAllFromCollection()
-  //     .then(() => activitiesDB.getAllForDeckOrSlide(content_kind, encodeURIComponent(request.params.id))
-  //     .then((activities) => {
-  //       let arrayOfAuthorPromisses = [];
-  //       activities.forEach((activity) => {
-  //         co.rewriteID(activity);
-  //         let promise = insertAuthor(activity).then((activity) => {
-  //
-  //           if (activity.user_id.length === 24) {//Mockup - old kind of ids
-  //             activity.author = getMockupAuthor(activity.user_id);//insert author data
-  //           }
-  //         }).catch((error) => {
-  //           tryRequestLog(request, 'error', error);
-  //           reply(boom.badImplementation());
-  //         });
-  //         arrayOfAuthorPromisses.push(promise);
-  //       });
-  //
-  //       Promise.all(arrayOfAuthorPromisses).then(() => {
-  //         let jsonReply = JSON.stringify(activities);
-  //         reply(jsonReply);
-  //
-  //       }).catch((error) => {
-  //         tryRequestLog(request, 'error', error);
-  //         reply(boom.badImplementation());
-  //       });
-  //
-  //     })).catch((error) => {
-  //       tryRequestLog(request, 'error', error);
-  //       reply(boom.badImplementation());
-  //     });
-  //
-  // },
-
   //Get All Activities from database for subscriptions in the request
   getActivitiesSubscribed: function(request, reply) {
     const subscriptions = request.params.subscriptions.split('/');
@@ -413,31 +375,23 @@ module.exports = {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
+  },
+
+  //Get the number of activities of specified type from database for the content_kind and id (all revisions) in the request
+  getActivitiesCountAllRevisions: function(request, reply) {
+    let content_kind = request.params.content_kind;
+    let activity_type = request.params.activity_type;
+    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
+
+    return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+      .then((count) => {
+        reply (count);
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
   }
 };
-
-//Delete all and insert mockup data
-// function initMockupData(identifier) {
-//   if (identifier === '000000000000000000000000') {//create collection, delete all and insert mockup data only if the user has explicitly sent 000000000000000000000000
-//     return activitiesDB.createCollection()
-//       .then(() => activitiesDB.deleteAll())
-//       .then(() => insertMockupData());
-//   }
-//   return new Promise((resolve) => {resolve (1);});
-// }
-
-// function getRandomActivities(activities, numActivities) {
-//
-//   let randomActivities = [];
-//   for (let i=0; i<numActivities; i++) {
-//     const randomIndex = Math.floor(Math.random()*1000) % activities.length;
-//     let a = JSON.parse(JSON.stringify(activities[randomIndex]));//clone it
-//     a.id = randomActivities.length;
-//     a.content_name = a.content_name + ' (random)';
-//     randomActivities.push(a);
-//   }
-//   return randomActivities;
-// }
 
 function getSubdecksAndSlides(content_kind, id) {
   let myPromise = new Promise((resolve, reject) => {

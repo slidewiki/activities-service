@@ -18,6 +18,12 @@ module.exports = {
       }));
   },
 
+  getCountAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier) {
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.count({activity_type: activity_type, content_kind: content_kind, content_id: identifier }));
+  },
+
   getAllForDeckOrSlide: function(content_kind, identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
@@ -46,7 +52,7 @@ module.exports = {
     const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
     const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
     const idQuery = {_id: {$in: idArray}};
-    
+
     //Modified ownerQuery to exclude documents where user_id i ownerId
     //This is temporary solution for the user notifications
     //This will be changed when proper subscription is implemented
