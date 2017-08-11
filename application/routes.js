@@ -175,6 +175,11 @@ module.exports = function(server) {
             //target_id: Joi.string().alphanum().lowercase(),
             target_name: Joi.string()
           }),
+          delete_info: Joi.object().keys({
+            content_id: Joi.string(),
+            content_kind: Joi.string().valid('deck', 'slide', 'group'),
+            content_name: Joi.string()
+          }),
           react_type: Joi.string(),
           rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type')
@@ -219,6 +224,11 @@ module.exports = function(server) {
               target_id: Joi.string(),
               //target_id: Joi.string().alphanum().lowercase(),
               target_name: Joi.string()
+            }),
+            delete_info: Joi.object().keys({
+              content_id: Joi.string(),
+              content_kind: Joi.string().valid('deck', 'slide', 'group'),
+              content_name: Joi.string()
             }),
             react_type: Joi.string(),
             rate_type: Joi.string()
@@ -266,6 +276,11 @@ module.exports = function(server) {
             target_id: Joi.string(),
             // target_id: Joi.string().alphanum().lowercase(),
             target_name: Joi.string()
+          }),
+          delete_info: Joi.object().keys({
+            content_id: Joi.string(),
+            content_kind: Joi.string().valid('deck', 'slide', 'group'),
+            content_name: Joi.string()
           }),
           react_type: Joi.string(),
           rate_type: Joi.string()
