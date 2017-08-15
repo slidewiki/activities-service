@@ -72,6 +72,11 @@ const activity = {
     rate_type:  {
       type: 'string'
     },
+    fork_info: {
+      content_id:  {
+        type: 'string'
+      }
+    },
     delete_info: {
       content_id: {
         type: 'string'
