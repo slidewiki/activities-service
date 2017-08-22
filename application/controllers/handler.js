@@ -112,7 +112,19 @@ module.exports = {
     });
 
     return Promise.all(arrayOfPromises)
-      .then((activities) => {
+      .then((contentTitlesAndOwners) => {
+        for (let i = 0; i < contentTitlesAndOwners.length; i++) {
+          let contentTitleAndOwner = contentTitlesAndOwners[i];
+          if (contentTitleAndOwner.title !== '') {
+            activities[i].content_name = contentTitleAndOwner.title;
+            activities[i].content_owner_id = contentTitleAndOwner.ownerId;
+            let contentIdParts = activities[i].content_id.split('-');
+            if (contentIdParts.length === 1) {//there is no revision id
+              activities[i].content_id += '-' + contentTitleAndOwner.revisionId;
+            }
+          }
+        }
+        
         activitiesDB.insertArray(activities).then((inserted) => {
           //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
