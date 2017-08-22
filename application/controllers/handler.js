@@ -83,7 +83,7 @@ module.exports = {
           else {
             return insertAuthor(inserted.ops[0]).then((activity) => {
               activity = co.rewriteID(activity);
-              if (activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
+              if (activity.content_owner_id && activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
                 createNotification(activity);
               }
               reply(activity);
@@ -124,7 +124,7 @@ module.exports = {
             }
           }
         }
-        
+
         activitiesDB.insertArray(activities).then((inserted) => {
           //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
