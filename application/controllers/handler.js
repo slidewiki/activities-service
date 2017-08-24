@@ -42,7 +42,7 @@ function createNotification(activity) {
     });
 }
 
-module.exports = {
+let self = module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
     return activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
@@ -204,61 +204,56 @@ module.exports = {
   //Get All Activities from database for the content_kind and id in the request, limited by the number of documents
   //In case of a deck -  include its subdecks and slides
   getActivities: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    if (content_kind === undefined) {// this is just to serve requests from old front-end version
-      content_kind = 'slide';
-    }
+    if (request.params.id === '-1') {
+      self.getAllActivities(request, reply);
+    } else {
+      let content_kind = request.params.content_kind;
 
-    return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
-      let slideIdArray = [];
-      let deckIdArray = [];
+      return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
+        let slideIdArray = [];
+        let deckIdArray = [];
 
-      arrayOfDecksAndSlides.forEach((deckOrSlide) => {
-        if (deckOrSlide.type === 'slide') {
-          slideIdArray.push(deckOrSlide.id);
-        } else {
-          deckIdArray.push(deckOrSlide.id);
-        }
-      });
-
-      return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
-        .then((activities) => {
-          //limit the resuls
-          const start = request.params.start;
-          const limit = request.params.limit;
-          let activitiesLimited = activities;
-          if (start !== undefined && limit !== undefined) {
-            activitiesLimited = activities.slice(start, start + limit);
+        arrayOfDecksAndSlides.forEach((deckOrSlide) => {
+          if (deckOrSlide.type === 'slide') {
+            slideIdArray.push(deckOrSlide.id);
+          } else {
+            deckIdArray.push(deckOrSlide.id);
           }
-          let arrayOfAuthorPromisses = [];
-          activitiesLimited.forEach((activity) => {
-            co.rewriteID(activity);
-            let promise = insertAuthor(activity);
-            arrayOfAuthorPromisses.push(promise);
-          });
+        });
 
-          //add random activities - for demonstration purpose only ;
-          // if (start < 200) {
-          //   let randomActivities = getRandomActivities(activities, limit - activitiesLimited.length);
-          //   activitiesLimited = activitiesLimited.concat(randomActivities);
-          // }
+        return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
+          .then((activities) => {
+            //limit the resuls
+            const start = request.params.start;
+            const limit = request.params.limit;
+            let activitiesLimited = activities;
+            if (start !== undefined && limit !== undefined) {
+              activitiesLimited = activities.slice(start, start + limit);
+            }
+            let arrayOfAuthorPromisses = [];
+            activitiesLimited.forEach((activity) => {
+              co.rewriteID(activity);
+              let promise = insertAuthor(activity);
+              arrayOfAuthorPromisses.push(promise);
+            });
 
-          Promise.all(arrayOfAuthorPromisses).then(() => {
-            let jsonReply = JSON.stringify(activitiesLimited);
-            reply(jsonReply);
+            Promise.all(arrayOfAuthorPromisses).then(() => {
+              let jsonReply = JSON.stringify(activitiesLimited);
+              reply(jsonReply);
 
+            }).catch((error) => {
+              tryRequestLog(request, 'error', error);
+              reply(boom.badImplementation());
+            });
           }).catch((error) => {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
+    }
   },
 
   //Get All Activities of specified type from database for the content_kind and id in the request
