@@ -162,7 +162,7 @@ module.exports = function(server) {
           use_info: Joi.object().keys({
             target_id: Joi.string(),
             //target_id: Joi.string().alphanum().lowercase(),
-            target_name: Joi.string()
+            target_name: Joi.string().allow('')
           }),
           fork_info: Joi.object().keys({
             content_id: Joi.string()
