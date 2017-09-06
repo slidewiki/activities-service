@@ -21,7 +21,7 @@ module.exports = {
   getCountAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.count({activity_type: activity_type, content_kind: content_kind, content_id: identifier }));
+      .then((col) => col.count({content_kind: content_kind, content_id: identifier, activity_type: activity_type }));
   },
 
   getAllForDeckOrSlide: function(content_kind, identifier) {
@@ -35,7 +35,7 @@ module.exports = {
   getAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({activity_type: activity_type, content_kind: content_kind, content_id: identifier }))
+      .then((col) => col.find({content_kind: content_kind, content_id: identifier, activity_type: activity_type }))
       .then((stream) => stream.sort({timestamp: -1}))
       .then((stream) => stream.toArray());
   },
