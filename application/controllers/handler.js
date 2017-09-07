@@ -449,7 +449,7 @@ function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
     let username = 'unknown';
     let avatar = '';
-    if (activity.user_id === undefined || activity.user_id === 'undefined') {
+    if (activity.user_id === undefined || activity.user_id === 'undefined' || activity.user_id === '0') {
       activity.author = {
         id: activity.user_id,
         username: username,
