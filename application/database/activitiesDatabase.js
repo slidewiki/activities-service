@@ -59,9 +59,9 @@ module.exports = {
 
     const ownerQuery = {$and: [{content_owner_id: ownerId}, { user_id: { $ne: ownerId } }]};
     const query = (ownerId !== undefined) ?
-     {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
-     :
-     {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
+      {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
+      :
+      {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
     // const query = {$or: [{user_id: {$in: []}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}]};
 
     return helper.connectToDatabase()
