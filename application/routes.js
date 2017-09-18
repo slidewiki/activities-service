@@ -18,8 +18,14 @@ module.exports = function(server) {
         params: {
           content_kind: Joi.string().valid('deck', 'slide'),
           id: Joi.string().description('The id of the deck/slide')
-          //  id: Joi.string().alphanum().lowercase()
         },
+        query: {
+          metaonly: Joi.string().description('Set to true to return only metadata without the list of activities'),
+          activity_type: Joi.string().description('Type of activities to be found'),
+          all_revisions: Joi.boolean().description('Set to true to search for activities regardles of the content revision'),
+          start: Joi.string().description('If defined, return activities starting from this index'),
+          limit: Joi.string().description('If defined, return only this number of activities')
+        }
       },
       tags: ['api'],
       description: 'Get a list of activities'
@@ -37,7 +43,6 @@ module.exports = function(server) {
           activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
           content_kind: Joi.string().valid('deck', 'slide'),
           id: Joi.string().description('The id of the deck/slide')
-          //  id: Joi.string().alphanum().lowercase()
         },
       },
       tags: ['api'],
@@ -91,7 +96,6 @@ module.exports = function(server) {
         params: {
           content_kind: Joi.string().valid('deck', 'slide'),
           id: Joi.string().description('The id of the deck/slide'),
-          //id: Joi.string().alphanum().lowercase(),
           start: Joi.string(),
           limit: Joi.string()
         },
@@ -139,15 +143,12 @@ module.exports = function(server) {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
           user_id: Joi.string(),
-          //user_id: Joi.string().alphanum().lowercase(),
           content_id: Joi.string(),
-          //content_id: Joi.string().alphanum().lowercase(),
           content_kind: Joi.string().valid('deck', 'slide', 'group'),
           content_name: Joi.string(),
           content_owner_id: Joi.string(),
           translation_info: Joi.object().keys({
             content_id: Joi.string(),
-            //content_id: Joi.string().alphanum().lowercase(),
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
@@ -156,12 +157,10 @@ module.exports = function(server) {
           }),
           comment_info: Joi.object().keys({
             comment_id: Joi.string(),
-            //comment_id: Joi.string().alphanum().lowercase(),
             text: Joi.string()
           }),
           use_info: Joi.object().keys({
             target_id: Joi.string(),
-            //target_id: Joi.string().alphanum().lowercase(),
             target_name: Joi.string().allow('')
           }),
           fork_info: Joi.object().keys({
@@ -192,15 +191,12 @@ module.exports = function(server) {
           Joi.object().keys({
             activity_type: Joi.string(),
             user_id: Joi.string(),
-            //user_id: Joi.string().alphanum().lowercase(),
             content_id: Joi.string(),
-            //content_id: Joi.string().alphanum().lowercase(),
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
             content_name: Joi.string(),
             content_owner_id: Joi.string(),
             translation_info: Joi.object().keys({
               content_id: Joi.string(),
-              //content_id: Joi.string().alphanum().lowercase(),
               language: Joi.string()
             }),
             share_info: Joi.object().keys({
@@ -209,12 +205,10 @@ module.exports = function(server) {
             }),
             comment_info: Joi.object().keys({
               comment_id: Joi.string(),
-              //comment_id: Joi.string().alphanum().lowercase(),
               text: Joi.string()
             }),
             use_info: Joi.object().keys({
               target_id: Joi.string(),
-              //target_id: Joi.string().alphanum().lowercase(),
               target_name: Joi.string()
             }),
             fork_info: Joi.object().keys({
@@ -235,60 +229,6 @@ module.exports = function(server) {
     }
   });
 
-  //Update activity with id id (by payload) and return it (...). Validate payload
-  // server.route({
-  //   method: 'PUT',
-  //   path: '/activity/{id}',
-  //   handler: handlers.updateActivity,
-  //   config: {
-  //     validate: {
-  //       params: {
-  //         id: Joi.string().alphanum().lowercase()
-  //       },
-  //       payload: Joi.object().keys({
-  //         activity_type: Joi.string(),
-  //         user_id: Joi.string(),
-  //         // user_id: Joi.string().alphanum().lowercase(),
-  //         content_id: Joi.string(),
-  //         // content_id: Joi.string().alphanum().lowercase(),
-  //         content_kind: Joi.string().valid('deck', 'slide', 'group'),
-  //         content_name: Joi.string(),
-  //         translation_info: Joi.object().keys({
-  //           content_id: Joi.string(),
-  //           //content_id: Joi.string().alphanum().lowercase(),
-  //           language: Joi.string()
-  //         }),
-  //         share_info: Joi.object().keys({
-  //           // postURI: Joi.string(),
-  //           platform: Joi.string()
-  //         }),
-  //         comment_info: Joi.object().keys({
-  //           comment_id: Joi.string(),
-  //           //comment_id: Joi.string().alphanum().lowercase(),
-  //           text: Joi.string()
-  //         }),
-  //         use_info: Joi.object().keys({
-  //           target_id: Joi.string(),
-  //           // target_id: Joi.string().alphanum().lowercase(),
-  //           target_name: Joi.string()
-  //         }),
-  //         fork_info: Joi.object().keys({
-  //           content_id: Joi.string()
-  //         }),
-  //         delete_info: Joi.object().keys({
-  //           content_id: Joi.string(),
-  //           content_kind: Joi.string().valid('deck', 'slide', 'group'),
-  //           content_name: Joi.string()
-  //         }),
-  //         react_type: Joi.string(),
-  //         rate_type: Joi.string()
-  //       }).requiredKeys('content_id', 'user_id', 'activity_type'),
-  //     },
-  //     tags: ['api'],
-  //     description: 'Replace an activity'
-  //   }
-  // });
-
   //Delete activity with id id (by payload). Validate payload
   server.route({
     method: 'DELETE',
@@ -298,7 +238,6 @@ module.exports = function(server) {
       validate: {
         payload: {
           id: Joi.string()
-          //id: Joi.string().alphanum().lowercase()
         },
       },
       tags: ['api'],
