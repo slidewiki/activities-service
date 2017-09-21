@@ -213,8 +213,8 @@ let self = module.exports = {
       const metaonly = request.query.metaonly;
       const activity_type = request.query.activity_type;
       const all_revisions = request.query.all_revisions;
-      const start = request.query.start;
-      const limit = request.query.limit;
+      const start = (request.query.start) ? request.query.start : 0;
+      const limit = (request.query.limit) ? request.query.limit : 0;
 
       if (metaonly === true && activity_type !== undefined) {
         if (all_revisions === true) {
@@ -242,7 +242,7 @@ let self = module.exports = {
             }
           });
 
-          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, []);
+          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
@@ -252,27 +252,27 @@ let self = module.exports = {
           if (all_revisions === true) {
             content_id = new RegExp('^' + request.params.id.split('-')[0]);
           }
-          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id);
+          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
         }
 
         return activitiesPromise
           .then((activities) => {
             //limit the resuls if required
-            let activitiesLimited = activities;
-            if (start !== undefined) {
-              activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
-            } else if (limit !== undefined) {
-              activitiesLimited = activities.slice(0, limit);
-            }
+            // let activitiesLimited = activities;
+            // if (start !== undefined) {
+            //   activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
+            // } else if (limit !== undefined) {
+            //   activitiesLimited = activities.slice(0, limit);
+            // }
             let arrayOfAuthorPromisses = [];
-            activitiesLimited.forEach((activity) => {
+            activities.forEach((activity) => {
               co.rewriteID(activity);
               let promise = insertAuthor(activity);
               arrayOfAuthorPromisses.push(promise);
             });
 
             Promise.all(arrayOfAuthorPromisses).then(() => {
-              let jsonReply = JSON.stringify({items: activitiesLimited, count: activitiesLimited.length});
+              let jsonReply = JSON.stringify({items: activities, count: activities.length});
               reply(jsonReply);
 
             }).catch((error) => {
