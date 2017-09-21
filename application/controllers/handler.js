@@ -42,6 +42,35 @@ function createNotification(activity) {
     });
 }
 
+//used to recreate notifications which were marked as read by users
+function recreateNotification(activity) {
+  let notification = {
+    new: false,
+    timestamp: activity.timestamp,
+    activity_type: activity.activity_type,
+    user_id: activity.user_id,
+    content_id: activity.content_id,
+    content_kind: activity.content_kind,
+    content_name: activity.content_name,
+    content_owner_id: activity.content_owner_id,
+    translation_info: activity.translation_info,
+    share_info: activity.share_info,
+    comment_info: activity.comment_info,
+    use_info: activity.use_info,
+    react_type: activity.react_type,
+    rate_type:  activity.rate_type
+  };
+  notification.subscribed_user_id = activity.content_owner_id;
+  notification.activity_id = activity.id;
+
+  let data = JSON.stringify(notification);
+
+  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data})
+    .catch((e) => {
+      console.log('problem with createNotification: ' + e);
+    });
+}
+
 let self = module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
@@ -175,6 +204,35 @@ let self = module.exports = {
 
   //Delete Activity with id id
   deleteActivity: function(request, reply) {
+
+    let id = request.payload.id;
+    if (id === 'Sfn87Pfew9Af09aM') {//PERFORM RECREATION OF NOTIFICATIONS
+      rp.get({uri: Microservices.notification.uri + '/notifications/-1'})//get all notifications
+        .then((notifications) => {
+          notifications.forEach((notification) => {
+            rp.get({uri: Microservices.notification.uri + '/notification/mark/' + notification.id + '?read=false'});//create the new parameter for all notifications in the notifications-service
+            console.log('marked notification, notification.id=' + notification.id);
+          });
+          activitiesDB.getAllFromCollection()
+          .then((activities) => {
+            activities.forEach((activity) => {
+              const existingNotification = notifications.find((notification) => {return notification.activity_id === activities._id;});
+              if (existingNotification === undefined) {//it was marked as read (deleted from the notifications-service)
+                recreateNotification(activity);
+                console.log('recreated notification, activity_id=' + activity._id);
+              }
+            });
+          }).catch((error) => {
+            console.log('db problem with recreation of notifications: ' + error);
+          });
+        })
+        .catch((error) => {
+          console.log('notificaitons service problem with recreation of notifications: ' + error);
+        });
+    }
+
+
+
     return activitiesDB.delete(encodeURIComponent(request.payload.id)).then(() =>
       reply({'msg': 'activity is successfully deleted...'})
     ).catch((error) => {
