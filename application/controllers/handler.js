@@ -216,8 +216,8 @@ let self = module.exports = {
       const start = (request.query.start) ? request.query.start : 0;
       const limit = (request.query.limit) ? request.query.limit : 0;
 
-      if (metaonly === true && activity_type !== undefined) {
-        if (all_revisions === true) {
+      if (metaonly === 'true' && activity_type !== undefined) {
+        if (all_revisions === 'true') {
           content_id = new RegExp('^' + request.params.id.split('-')[0]);
         }
 
@@ -249,7 +249,7 @@ let self = module.exports = {
         });
 
         if (activity_type !== undefined) {
-          if (all_revisions === true) {
+          if (all_revisions === 'true') {
             content_id = new RegExp('^' + request.params.id.split('-')[0]);
           }
           activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
@@ -272,9 +272,15 @@ let self = module.exports = {
             });
 
             Promise.all(arrayOfAuthorPromisses).then(() => {
-              let jsonReply = JSON.stringify({items: activities, count: activities.length});
-              reply(jsonReply);
-
+              if (metaonly === 'true') {
+                reply(activities.length);
+              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
+                let jsonReply = JSON.stringify(activities);
+                reply(jsonReply);
+              } else {
+                let jsonReply = JSON.stringify({items: activities, count: activities.length});
+                reply(jsonReply);
+              }
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
               reply(boom.badImplementation());

@@ -27,9 +27,13 @@ module.exports = {
   getAllForDeckOrSlide: function(content_kind, identifier, skip, limit) {
     if (!skip) {
       skip = 0;
+    } else {
+      skip = parseInt(skip);
     }
     if (!limit) {
       limit = 0;
+    } else {
+      limit = parseInt(limit);
     }
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
@@ -40,9 +44,13 @@ module.exports = {
   getAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier, skip, limit) {
     if (!skip) {
       skip = 0;
+    } else {
+      skip = parseInt(skip);
     }
     if (!limit) {
       limit = 0;
+    } else {
+      limit = parseInt(limit);
     }
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
@@ -53,9 +61,13 @@ module.exports = {
   getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray, ownerId, skip, limit) {
     if (!skip) {
       skip = 0;
+    } else {
+      skip = parseInt(skip);
     }
     if (!limit) {
       limit = 0;
+    } else {
+      limit = parseInt(limit);
     }
     // makeStringOIDArray(userIdArray);
     // makeStringOIDArray(slideIdArray);
