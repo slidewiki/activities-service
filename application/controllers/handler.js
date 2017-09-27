@@ -227,7 +227,7 @@ let self = module.exports = {
           });
         })
         .catch((error) => {
-          console.log('notificaitons service problem with recreation of notifications: ' + error);
+          console.log('notifications service problem with recreation of notifications: ' + error);
         });
     }
 
