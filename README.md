@@ -17,7 +17,7 @@ You want to **checkout this cool service**? Simply start the service and head ov
 You can use [Docker](https://www.docker.com/) to build, test and run your application locally. Simply edit the Dockerfile and run:
 
 ```
-docker build -t MY_IMAGE_TAG ./
+docker build -t slidewiki/activitiesservice ./
 docker run -it --rm -p 8880:3000 MY_IMAGE_TAG
 ```
 
