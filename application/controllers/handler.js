@@ -209,39 +209,79 @@ let self = module.exports = {
       self.getAllActivities(request, reply);
     } else {
       let content_kind = request.params.content_kind;
+      let content_id = request.params.id;
 
-      return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
-        let slideIdArray = [];
-        let deckIdArray = [];
+      const metaonly = request.query.metaonly;
+      const activity_type = request.query.activity_type;
+      const all_revisions = request.query.all_revisions;
+      const start = (request.query.start) ? request.query.start : 0;
+      const limit = (request.query.limit) ? request.query.limit : 0;
 
-        arrayOfDecksAndSlides.forEach((deckOrSlide) => {
-          if (deckOrSlide.type === 'slide') {
-            slideIdArray.push(deckOrSlide.id);
-          } else {
-            deckIdArray.push(deckOrSlide.id);
-          }
+      if (metaonly === 'true' && activity_type !== undefined) {
+        if (all_revisions === 'true') {
+          content_id = new RegExp('^' + request.params.id.split('-')[0]);
+        }
+
+        return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+          .then((count) => {
+            reply (count);
+          }).catch((error) => {
+            tryRequestLog(request, 'error', error);
+            reply(boom.badImplementation());
+          });
+      } else {
+
+        let activitiesPromise = getSubdecksAndSlides(content_kind, content_id).then((arrayOfDecksAndSlides) => {
+          let slideIdArray = [];
+          let deckIdArray = [];
+
+          arrayOfDecksAndSlides.forEach((deckOrSlide) => {
+            if (deckOrSlide.type === 'slide') {
+              slideIdArray.push(deckOrSlide.id);
+            } else {
+              deckIdArray.push(deckOrSlide.id);
+            }
+          });
+
+          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
         });
 
-        return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
+        if (activity_type !== undefined) {
+          if (all_revisions === 'true') {
+            content_id = new RegExp('^' + request.params.id.split('-')[0]);
+          }
+          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
+        }
+
+        return activitiesPromise
           .then((activities) => {
-            //limit the resuls
-            const start = request.params.start;
-            const limit = request.params.limit;
-            let activitiesLimited = activities;
-            if (start !== undefined && limit !== undefined) {
-              activitiesLimited = activities.slice(start, start + limit);
-            }
+            //limit the resuls if required
+            // let activitiesLimited = activities;
+            // if (start !== undefined) {
+            //   activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
+            // } else if (limit !== undefined) {
+            //   activitiesLimited = activities.slice(0, limit);
+            // }
             let arrayOfAuthorPromisses = [];
-            activitiesLimited.forEach((activity) => {
+            activities.forEach((activity) => {
               co.rewriteID(activity);
               let promise = insertAuthor(activity);
               arrayOfAuthorPromisses.push(promise);
             });
 
             Promise.all(arrayOfAuthorPromisses).then(() => {
-              let jsonReply = JSON.stringify(activitiesLimited);
-              reply(jsonReply);
-
+              if (metaonly === 'true') {
+                reply(activities.length);
+              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
+                let jsonReply = JSON.stringify(activities);
+                reply(jsonReply);
+              } else {
+                let jsonReply = JSON.stringify({items: activities, count: activities.length});
+                reply(jsonReply);
+              }
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
               reply(boom.badImplementation());
@@ -250,10 +290,7 @@ let self = module.exports = {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
+      }
     }
   },
 
