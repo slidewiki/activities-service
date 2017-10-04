@@ -19,9 +19,15 @@ module.exports = function(server) {
       validate: {
         params: {
           content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string()
-          //  id: Joi.string().alphanum().lowercase()
+          id: Joi.string().description('The id of the deck/slide')
         },
+        query: {
+          metaonly: Joi.string().description('Set to true to return only metadata without the list of activities'),
+          activity_type: Joi.string().description('Type of activities to be found'),
+          all_revisions: Joi.string().description('Set to true to search for activities regardles of the content revision'),
+          start: Joi.string().description('If defined, return activities starting from this index'),
+          limit: Joi.string().description('If defined, return only this number of activities')
+        }
       },
       tags: ['api'],
       description: 'Get a list of activities'
@@ -36,10 +42,9 @@ module.exports = function(server) {
     config: {
       validate: {
         params: {
-          activity_type: Joi.string(),
+          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
           content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string()
-          //  id: Joi.string().alphanum().lowercase()
+          id: Joi.string().description('The id of the deck/slide')
         },
       },
       tags: ['api'],
@@ -55,10 +60,9 @@ module.exports = function(server) {
     config: {
       validate: {
         params: {
-          activity_type: Joi.string(),
+          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
           content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string()
-          //  id: Joi.string().alphanum().lowercase()
+          id: Joi.string().description('The id of the deck/slide')
         },
       },
       tags: ['api'],
@@ -66,33 +70,21 @@ module.exports = function(server) {
     }
   });
 
-  //Get all activities from database and return the entire list (when not available, return NOT FOUND).
+  //Get the number of activities of specific type with content id id from database
   server.route({
     method: 'GET',
-    path: '/activities/all',
-    handler: handlers.getAllActivities,
-    config: {
-      tags: ['api'],
-      description: 'Get a list of all activities'
-    }
-  });
-
-  //Get limited number of activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activities/{id}/more/{start}/{limit}',
-    handler: handlers.getActivities,
+    path: '/activities/allrevisions/count/{activity_type}/{content_kind}/{id}',
+    handler: handlers.getActivitiesCountAllRevisions,
     config: {
       validate: {
         params: {
-          id: Joi.string(),
-          //id: Joi.string().alphanum().lowercase(),
-          start: Joi.string(),
-          limit: Joi.string()
+          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
+          content_kind: Joi.string().valid('deck', 'slide'),
+          id: Joi.string().description('The id of the deck/slide')
         },
       },
       tags: ['api'],
-      description: 'Get a list of {limit} activities starting from {start} )'
+      description: 'Get the number of activities of specified type'
     }
   });
 
@@ -105,8 +97,7 @@ module.exports = function(server) {
       validate: {
         params: {
           content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string(),
-          //id: Joi.string().alphanum().lowercase(),
+          id: Joi.string().description('The id of the deck/slide'),
           start: Joi.string(),
           limit: Joi.string()
         },
@@ -123,26 +114,26 @@ module.exports = function(server) {
     handler: handlers.getActivitiesSubscribed,
     config: {
       tags: ['api'],
-      description: 'Get a list of subscribed activities (example parameter: u112233445566778899000001/s8) )'
+      description: 'Get a list of subscribed activities (example parameter: u16/s8) )'
     }
   });//TODO if the url length is critical -> use POST instead?
 
   //Get activity with id id from database and return it (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activity/{id}',
-    handler: handlers.getActivity,
-    config: {
-      validate: {
-        params: {
-          id: Joi.string()
-          //id: Joi.string().alphanum().lowercase()
-        },
-      },
-      tags: ['api'],
-      description: 'Get the activity'
-    }
-  });
+  // server.route({
+  //   method: 'GET',
+  //   path: '/activity/{id}',
+  //   handler: handlers.getActivity,
+  //   config: {
+  //     validate: {
+  //       params: {
+  //         id: Joi.string()
+  //         //id: Joi.string().alphanum().lowercase()
+  //       },
+  //     },
+  //     tags: ['api'],
+  //     description: 'Get the activity'
+  //   }
+  // });
 
   //Create new activity (by payload) and return it (...). Validate payload
   server.route({
@@ -157,15 +148,12 @@ module.exports = function(server) {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
           user_id: Joi.string(),
-          //user_id: Joi.string().alphanum().lowercase(),
           content_id: Joi.string(),
-          //content_id: Joi.string().alphanum().lowercase(),
           content_kind: Joi.string().valid('deck', 'slide', 'group'),
           content_name: Joi.string(),
           content_owner_id: Joi.string(),
           translation_info: Joi.object().keys({
             content_id: Joi.string(),
-            //content_id: Joi.string().alphanum().lowercase(),
             language: Joi.string()
           }),
           share_info: Joi.object().keys({
@@ -174,13 +162,19 @@ module.exports = function(server) {
           }),
           comment_info: Joi.object().keys({
             comment_id: Joi.string(),
-            //comment_id: Joi.string().alphanum().lowercase(),
             text: Joi.string()
           }),
           use_info: Joi.object().keys({
             target_id: Joi.string(),
-            //target_id: Joi.string().alphanum().lowercase(),
-            target_name: Joi.string()
+            target_name: Joi.string().allow('')
+          }),
+          fork_info: Joi.object().keys({
+            content_id: Joi.string()
+          }),
+          delete_info: Joi.object().keys({
+            content_id: Joi.string(),
+            content_kind: Joi.string().valid('deck', 'slide', 'group'),
+            content_name: Joi.string()
           }),
           react_type: Joi.string(),
           rate_type: Joi.string()
@@ -202,15 +196,12 @@ module.exports = function(server) {
           Joi.object().keys({
             activity_type: Joi.string(),
             user_id: Joi.string(),
-            //user_id: Joi.string().alphanum().lowercase(),
             content_id: Joi.string(),
-            //content_id: Joi.string().alphanum().lowercase(),
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
             content_name: Joi.string(),
             content_owner_id: Joi.string(),
             translation_info: Joi.object().keys({
               content_id: Joi.string(),
-              //content_id: Joi.string().alphanum().lowercase(),
               language: Joi.string()
             }),
             share_info: Joi.object().keys({
@@ -219,13 +210,19 @@ module.exports = function(server) {
             }),
             comment_info: Joi.object().keys({
               comment_id: Joi.string(),
-              //comment_id: Joi.string().alphanum().lowercase(),
               text: Joi.string()
             }),
             use_info: Joi.object().keys({
               target_id: Joi.string(),
-              //target_id: Joi.string().alphanum().lowercase(),
               target_name: Joi.string()
+            }),
+            fork_info: Joi.object().keys({
+              content_id: Joi.string()
+            }),
+            delete_info: Joi.object().keys({
+              content_id: Joi.string(),
+              content_kind: Joi.string().valid('deck', 'slide', 'group'),
+              content_name: Joi.string()
             }),
             react_type: Joi.string(),
             rate_type: Joi.string()
@@ -234,52 +231,6 @@ module.exports = function(server) {
       },
       tags: ['api'],
       description: 'Create new activities'
-    }
-  });
-
-  //Update activity with id id (by payload) and return it (...). Validate payload
-  server.route({
-    method: 'PUT',
-    path: '/activity/{id}',
-    handler: handlers.updateActivity,
-    config: {
-      validate: {
-        params: {
-          id: Joi.string().alphanum().lowercase()
-        },
-        payload: Joi.object().keys({
-          activity_type: Joi.string(),
-          user_id: Joi.string(),
-          // user_id: Joi.string().alphanum().lowercase(),
-          content_id: Joi.string(),
-          // content_id: Joi.string().alphanum().lowercase(),
-          content_kind: Joi.string().valid('deck', 'slide', 'group'),
-          content_name: Joi.string(),
-          translation_info: Joi.object().keys({
-            content_id: Joi.string(),
-            //content_id: Joi.string().alphanum().lowercase(),
-            language: Joi.string()
-          }),
-          share_info: Joi.object().keys({
-            // postURI: Joi.string(),
-            platform: Joi.string()
-          }),
-          comment_info: Joi.object().keys({
-            comment_id: Joi.string(),
-            //comment_id: Joi.string().alphanum().lowercase(),
-            text: Joi.string()
-          }),
-          use_info: Joi.object().keys({
-            target_id: Joi.string(),
-            // target_id: Joi.string().alphanum().lowercase(),
-            target_name: Joi.string()
-          }),
-          react_type: Joi.string(),
-          rate_type: Joi.string()
-        }).requiredKeys('content_id', 'user_id', 'activity_type'),
-      },
-      tags: ['api'],
-      description: 'Replace an activity'
     }
   });
 
@@ -292,7 +243,6 @@ module.exports = function(server) {
       validate: {
         payload: {
           id: Joi.string()
-          //id: Joi.string().alphanum().lowercase()
         },
       },
       tags: ['api'],

@@ -1,6 +1,7 @@
 /*
 Handles the requests by executing stuff and replying to the client. Uses promises to get stuff done.
 */
+/* eslint promise/always-return: "off" */
 
 'use strict';
 
@@ -42,7 +43,7 @@ function createNotification(activity) {
     });
 }
 
-module.exports = {
+let self = module.exports = {
   //Get Activity from database or return NOT FOUND
   getActivity: function(request, reply) {
     return activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
@@ -83,7 +84,7 @@ module.exports = {
           else {
             return insertAuthor(inserted.ops[0]).then((activity) => {
               activity = co.rewriteID(activity);
-              if (activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
+              if (activity.content_owner_id && activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
                 createNotification(activity);
               }
               reply(activity);
@@ -112,7 +113,19 @@ module.exports = {
     });
 
     return Promise.all(arrayOfPromises)
-      .then((activities) => {
+      .then((contentTitlesAndOwners) => {
+        for (let i = 0; i < contentTitlesAndOwners.length; i++) {
+          let contentTitleAndOwner = contentTitlesAndOwners[i];
+          if (contentTitleAndOwner.title !== '') {
+            activities[i].content_name = contentTitleAndOwner.title;
+            activities[i].content_owner_id = contentTitleAndOwner.ownerId;
+            let contentIdParts = activities[i].content_id.split('-');
+            if (contentIdParts.length === 1) {//there is no revision id
+              activities[i].content_id += '-' + contentTitleAndOwner.revisionId;
+            }
+          }
+        }
+
         activitiesDB.insertArray(activities).then((inserted) => {
           //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
@@ -192,61 +205,93 @@ module.exports = {
   //Get All Activities from database for the content_kind and id in the request, limited by the number of documents
   //In case of a deck -  include its subdecks and slides
   getActivities: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    if (content_kind === undefined) {// this is just to serve requests from old front-end version
-      content_kind = 'slide';
-    }
+    if (request.params.id === '-1') {
+      self.getAllActivities(request, reply);
+    } else {
+      let content_kind = request.params.content_kind;
+      let content_id = request.params.id;
 
-    return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
-      let slideIdArray = [];
-      let deckIdArray = [];
+      const metaonly = request.query.metaonly;
+      const activity_type = request.query.activity_type;
+      const all_revisions = request.query.all_revisions;
+      const start = (request.query.start) ? request.query.start : 0;
+      const limit = (request.query.limit) ? request.query.limit : 0;
 
-      arrayOfDecksAndSlides.forEach((deckOrSlide) => {
-        if (deckOrSlide.type === 'slide') {
-          slideIdArray.push(deckOrSlide.id);
-        } else {
-          deckIdArray.push(deckOrSlide.id);
+      if (metaonly === 'true' && activity_type !== undefined) {
+        if (all_revisions === 'true') {
+          content_id = new RegExp('^' + request.params.id.split('-')[0]);
         }
-      });
 
-      return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
-        .then((activities) => {
-          //limit the resuls
-          const start = request.params.start;
-          const limit = request.params.limit;
-          let activitiesLimited = activities;
-          if (start !== undefined && limit !== undefined) {
-            activitiesLimited = activities.slice(start, start + limit);
-          }
-          let arrayOfAuthorPromisses = [];
-          activitiesLimited.forEach((activity) => {
-            co.rewriteID(activity);
-            let promise = insertAuthor(activity);
-            arrayOfAuthorPromisses.push(promise);
-          });
-
-          //add random activities - for demonstration purpose only ;
-          // if (start < 200) {
-          //   let randomActivities = getRandomActivities(activities, limit - activitiesLimited.length);
-          //   activitiesLimited = activitiesLimited.concat(randomActivities);
-          // }
-
-          Promise.all(arrayOfAuthorPromisses).then(() => {
-            let jsonReply = JSON.stringify(activitiesLimited);
-            reply(jsonReply);
-
+        return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+          .then((count) => {
+            reply (count);
           }).catch((error) => {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
+      } else {
+
+        let activitiesPromise = getSubdecksAndSlides(content_kind, content_id).then((arrayOfDecksAndSlides) => {
+          let slideIdArray = [];
+          let deckIdArray = [];
+
+          arrayOfDecksAndSlides.forEach((deckOrSlide) => {
+            if (deckOrSlide.type === 'slide') {
+              slideIdArray.push(deckOrSlide.id);
+            } else {
+              deckIdArray.push(deckOrSlide.id);
+            }
+          });
+
+          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
+
+        if (activity_type !== undefined) {
+          if (all_revisions === 'true') {
+            content_id = new RegExp('^' + request.params.id.split('-')[0]);
+          }
+          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
+        }
+
+        return activitiesPromise
+          .then((activities) => {
+            //limit the resuls if required
+            // let activitiesLimited = activities;
+            // if (start !== undefined) {
+            //   activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
+            // } else if (limit !== undefined) {
+            //   activitiesLimited = activities.slice(0, limit);
+            // }
+            let arrayOfAuthorPromisses = [];
+            activities.forEach((activity) => {
+              co.rewriteID(activity);
+              let promise = insertAuthor(activity);
+              arrayOfAuthorPromisses.push(promise);
+            });
+
+            Promise.all(arrayOfAuthorPromisses).then(() => {
+              if (metaonly === 'true') {
+                reply(activities.length);
+              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
+                let jsonReply = JSON.stringify(activities);
+                reply(jsonReply);
+              } else {
+                let jsonReply = JSON.stringify({items: activities, count: activities.length});
+                reply(jsonReply);
+              }
+            }).catch((error) => {
+              tryRequestLog(request, 'error', error);
+              reply(boom.badImplementation());
+            });
+          }).catch((error) => {
+            tryRequestLog(request, 'error', error);
+            reply(boom.badImplementation());
+          });
+      }
+    }
   },
 
   //Get All Activities of specified type from database for the content_kind and id in the request
@@ -304,44 +349,6 @@ module.exports = {
         reply(boom.badImplementation());
       });
   },
-
-  //Get All Activities from database for the content_kind and id in the request
-  // getActivities: function(request, reply) { - old version (before getting subactivities)
-  //   //Clean collection and insert mockup activities - only if request.params.id === 0
-  //   return initMockupData(request.params.id)
-  //     // .then(() => activitiesDB.getAllFromCollection()
-  //     .then(() => activitiesDB.getAllForDeckOrSlide(content_kind, encodeURIComponent(request.params.id))
-  //     .then((activities) => {
-  //       let arrayOfAuthorPromisses = [];
-  //       activities.forEach((activity) => {
-  //         co.rewriteID(activity);
-  //         let promise = insertAuthor(activity).then((activity) => {
-  //
-  //           if (activity.user_id.length === 24) {//Mockup - old kind of ids
-  //             activity.author = getMockupAuthor(activity.user_id);//insert author data
-  //           }
-  //         }).catch((error) => {
-  //           tryRequestLog(request, 'error', error);
-  //           reply(boom.badImplementation());
-  //         });
-  //         arrayOfAuthorPromisses.push(promise);
-  //       });
-  //
-  //       Promise.all(arrayOfAuthorPromisses).then(() => {
-  //         let jsonReply = JSON.stringify(activities);
-  //         reply(jsonReply);
-  //
-  //       }).catch((error) => {
-  //         tryRequestLog(request, 'error', error);
-  //         reply(boom.badImplementation());
-  //       });
-  //
-  //     })).catch((error) => {
-  //       tryRequestLog(request, 'error', error);
-  //       reply(boom.badImplementation());
-  //     });
-  //
-  // },
 
   //Get All Activities from database for subscriptions in the request
   getActivitiesSubscribed: function(request, reply) {
@@ -413,31 +420,23 @@ module.exports = {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
+  },
+
+  //Get the number of activities of specified type from database for the content_kind and id (all revisions) in the request
+  getActivitiesCountAllRevisions: function(request, reply) {
+    let content_kind = request.params.content_kind;
+    let activity_type = request.params.activity_type;
+    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
+
+    return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+      .then((count) => {
+        reply (count);
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
   }
 };
-
-//Delete all and insert mockup data
-// function initMockupData(identifier) {
-//   if (identifier === '000000000000000000000000') {//create collection, delete all and insert mockup data only if the user has explicitly sent 000000000000000000000000
-//     return activitiesDB.createCollection()
-//       .then(() => activitiesDB.deleteAll())
-//       .then(() => insertMockupData());
-//   }
-//   return new Promise((resolve) => {resolve (1);});
-// }
-
-// function getRandomActivities(activities, numActivities) {
-//
-//   let randomActivities = [];
-//   for (let i=0; i<numActivities; i++) {
-//     const randomIndex = Math.floor(Math.random()*1000) % activities.length;
-//     let a = JSON.parse(JSON.stringify(activities[randomIndex]));//clone it
-//     a.id = randomActivities.length;
-//     a.content_name = a.content_name + ' (random)';
-//     randomActivities.push(a);
-//   }
-//   return randomActivities;
-// }
 
 function getSubdecksAndSlides(content_kind, id) {
   let myPromise = new Promise((resolve, reject) => {
@@ -488,7 +487,7 @@ function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
     let username = 'unknown';
     let avatar = '';
-    if (activity.user_id === undefined || activity.user_id === 'undefined') {
+    if (activity.user_id === undefined || activity.user_id === 'undefined' || activity.user_id === '0') {
       activity.author = {
         id: activity.user_id,
         username: username,

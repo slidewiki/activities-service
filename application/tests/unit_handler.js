@@ -40,11 +40,11 @@ describe('Activity service', () => {
         activityId = result.id;
         return;
       })
-      .catch((Error) => {
-        console.log(Error);
-        throw Error;
-        expect(1).to.equals(2);
-      });
+        .catch((Error) => {
+          console.log(Error);
+          expect(1).to.equals(2);
+          throw Error;
+        });
     });
 
     // it('Get comment', () => {
@@ -115,17 +115,17 @@ describe('Activity service', () => {
           expect(result2.msg).to.not.equal(undefined);
           return;
         })
+          .catch((Error) => {
+            console.log('Error', Error);
+            expect(1).to.equals(2);
+            throw Error;
+          });
+      })
         .catch((Error) => {
           console.log('Error', Error);
-          throw Error;
           expect(1).to.equals(2);
+          throw Error;
         });
-      })
-      .catch((Error) => {
-        console.log('Error', Error);
-        throw Error;
-        expect(1).to.equals(2);
-      });
     });
 
   });
