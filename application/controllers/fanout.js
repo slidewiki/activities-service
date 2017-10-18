@@ -6,12 +6,12 @@ const self = module.exports = {
 
   forwardActivity: function(request, reply) {
     xapiService.sendActivities(request.payload)
-      .then(reply)
       .catch((err) => {
         request.log('error', err);
-        reply();
       });
 
+    // reply immediately, don't let the request to xapi delay this one
+    reply();
   },
 
 };
