@@ -44,25 +44,6 @@ function createNotification(activity) {
 }
 
 let self = module.exports = {
-  //Get Activity from database or return NOT FOUND
-  getActivity: function(request, reply) {
-    return activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
-      if (co.isEmpty(activity))
-        reply(boom.notFound());
-      else {
-        return insertAuthor(activity).then((activity) => {
-
-          reply(co.rewriteID(activity));
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
-  },
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
@@ -158,20 +139,6 @@ let self = module.exports = {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
-  },
-
-  //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
-  updateActivity: function(request, reply) {
-    return activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
-      //console.log('updated: ', replaced);
-      if (co.isEmpty(replaced.value))
-        throw replaced;
-      else
-        reply(replaced.value);
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
   },
 
   //Delete Activity with id id
@@ -294,62 +261,6 @@ let self = module.exports = {
     }
   },
 
-  //Get All Activities of specified type from database for the content_kind and id in the request
-  getActivitiesOfType: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = request.params.id;
-
-    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
-  },
-
-  //Get All Activities of specified type from database for the content_kind and id (all revisions) in the request
-  getActivitiesOfTypeAllRevisions: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
-
-    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
-  },
-
   //Get All Activities from database for subscriptions in the request
   getActivitiesSubscribed: function(request, reply) {
     const subscriptions = request.params.subscriptions.split('/');
@@ -416,21 +327,6 @@ let self = module.exports = {
           reply(boom.badImplementation());
         });
 
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
-  },
-
-  //Get the number of activities of specified type from database for the content_kind and id (all revisions) in the request
-  getActivitiesCountAllRevisions: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
-
-    return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((count) => {
-        reply (count);
       }).catch((error) => {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());

@@ -32,79 +32,6 @@ module.exports = function(server) {
     }
   });
 
-  //Get activities of specific type with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activities/{activity_type}/{content_kind}/{id}',
-    handler: handlers.getActivitiesOfType,
-    config: {
-      validate: {
-        params: {
-          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
-          content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string().description('The id of the deck/slide')
-        },
-      },
-      tags: ['api'],
-      description: 'Get a list of activities of specified type'
-    }
-  });
-
-  //Get activities of specific type with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activities/allrevisions/{activity_type}/{content_kind}/{id}',
-    handler: handlers.getActivitiesOfTypeAllRevisions,
-    config: {
-      validate: {
-        params: {
-          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
-          content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string().description('The id of the deck/slide')
-        },
-      },
-      tags: ['api'],
-      description: 'Get a list of activities of specified type'
-    }
-  });
-
-  //Get the number of activities of specific type with content id id from database
-  server.route({
-    method: 'GET',
-    path: '/activities/allrevisions/count/{activity_type}/{content_kind}/{id}',
-    handler: handlers.getActivitiesCountAllRevisions,
-    config: {
-      validate: {
-        params: {
-          activity_type: Joi.string().description('Type of the activity: translate, share, add, edit, comment, reply, use, react, rate, download, fork, delete, joined, left'),
-          content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string().description('The id of the deck/slide')
-        },
-      },
-      tags: ['api'],
-      description: 'Get the number of activities of specified type'
-    }
-  });
-
-  //Get limited number of activities with content_kind and content id from database and return the entire list (when not available, return NOT FOUND). Validate id
-  server.route({
-    method: 'GET',
-    path: '/activities/{content_kind}/{id}/more/{start}/{limit}',
-    handler: handlers.getActivities,
-    config: {
-      validate: {
-        params: {
-          content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string().description('The id of the deck/slide'),
-          start: Joi.string(),
-          limit: Joi.string()
-        },
-      },
-      tags: ['api'],
-      description: 'Get a list of {limit} activities starting from {start} )'
-    }
-  });
-
   //Get activities matching subscriptions from database and return the entire list (when not available, return NOT FOUND).
   server.route({
     method: 'GET',
@@ -115,23 +42,6 @@ module.exports = function(server) {
       description: 'Get a list of subscribed activities (example parameter: u16/s8) )'
     }
   });//TODO if the url length is critical -> use POST instead?
-
-  //Get activity with id id from database and return it (when not available, return NOT FOUND). Validate id
-  // server.route({
-  //   method: 'GET',
-  //   path: '/activity/{id}',
-  //   handler: handlers.getActivity,
-  //   config: {
-  //     validate: {
-  //       params: {
-  //         id: Joi.string()
-  //         //id: Joi.string().alphanum().lowercase()
-  //       },
-  //     },
-  //     tags: ['api'],
-  //     description: 'Get the activity'
-  //   }
-  // });
 
   //Create new activity (by payload) and return it (...). Validate payload
   server.route({
