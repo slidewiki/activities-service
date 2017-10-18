@@ -141,7 +141,10 @@ module.exports = function(server) {
     path: '/activity/new',
     handler: handlers.newActivity,
     config: {
-      auth: 'jwt',
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
       pre: [
         { method: fanout.forwardActivity },
       ],
@@ -181,7 +184,7 @@ module.exports = function(server) {
           rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type'),
         headers: Joi.object({
-          '----jwt----': Joi.string().required().description('JWT header provided by /login')
+          '----jwt----': Joi.string().description('JWT header provided by /login')
         }).unknown(),
       },
       tags: ['api'],
@@ -195,7 +198,10 @@ module.exports = function(server) {
     path: '/activities/new',
     handler: handlers.newActivities,
     config: {
-      auth: 'jwt',
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
       pre: [
         { method: fanout.forwardActivity },
       ],
@@ -237,7 +243,7 @@ module.exports = function(server) {
           }).requiredKeys('content_id', 'user_id', 'activity_type')
         ),
         headers: Joi.object({
-          '----jwt----': Joi.string().required().description('JWT header provided by /login')
+          '----jwt----': Joi.string().description('JWT header provided by /login')
         }).unknown(),
       },
       tags: ['api'],
