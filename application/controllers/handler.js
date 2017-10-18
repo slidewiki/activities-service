@@ -486,12 +486,10 @@ function getArrayOfChildren(node) {//recursive
 function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
     let username = 'unknown';
-    let avatar = '';
     if (activity.user_id === undefined || activity.user_id === 'undefined' || activity.user_id === '0') {
       activity.author = {
         id: activity.user_id,
-        username: username,
-        avatar: avatar
+        username: username
       };
       resolve(activity);
     } else {
@@ -499,21 +497,18 @@ function insertAuthor(activity) {
         try {
           let parsed = JSON.parse(res);
           username = parsed.username;
-          avatar = parsed.picture;
         } catch(e) {
           console.log(e);
           activity.author = {
             id: activity.user_id,
-            username: username,
-            avatar: avatar
+            username: username
           };
           resolve(activity);
         }
 
         activity.author = {
           id: activity.user_id,
-          username: username,
-          avatar: avatar
+          username: username
         };
         resolve(activity);
 
@@ -521,8 +516,7 @@ function insertAuthor(activity) {
         console.log('Error', err);
         activity.author = {
           id: activity.user_id,
-          username: username,
-          avatar: avatar
+          username: username
         };
         resolve(activity);
       });
