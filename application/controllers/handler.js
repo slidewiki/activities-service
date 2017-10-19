@@ -381,15 +381,23 @@ function getArrayOfChildren(node) {//recursive
 //insert author data using user microservice
 function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
-    let username = 'unknown';
-    if (activity.user_id === undefined || activity.user_id === 'undefined' || activity.user_id === '0') {
+
+    if (activity.user_id === '0') {
       activity.author = {
-        id: activity.user_id,
-        username: username
+        id: '0',
+        username: 'Guest'
+      };
+      resolve(activity);
+    } else if (activity.user_id === undefined || activity.user_id === 'undefined') {
+      console.log('Error user_id', activity.user_id);
+      activity.author = {
+        id: 'undefined',
+        username: 'unknown'
       };
       resolve(activity);
     } else {
       rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
+        let username = '';
         try {
           let parsed = JSON.parse(res);
           username = parsed.username;
@@ -397,7 +405,7 @@ function insertAuthor(activity) {
           console.log(e);
           activity.author = {
             id: activity.user_id,
-            username: username
+            username: 'user ' + activity.user_id
           };
           resolve(activity);
         }
@@ -412,7 +420,7 @@ function insertAuthor(activity) {
         console.log('Error', err);
         activity.author = {
           id: activity.user_id,
-          username: username
+          username: 'user ' + activity.user_id
         };
         resolve(activity);
       });
