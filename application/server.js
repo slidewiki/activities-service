@@ -69,7 +69,8 @@ server.register(plugins, (err) => {
       key: config.JWT.SERIAL,
       validateFunc: (decoded, request, callback) => {
         let isValid = false;
-        if (decoded.userid && decoded.username && decoded.email) {
+        // TODO also include email verification after we figure out how to upgrade the user jwt token
+        if (decoded.userid && decoded.username/* && decoded.email*/) {
           isValid = true;
         }
         callback(null, isValid);
