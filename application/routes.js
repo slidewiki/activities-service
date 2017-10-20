@@ -7,6 +7,8 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 const Joi = require('joi'),
   handlers = require('./controllers/handler');
 
+const fanout = require('./controllers/fanout');
+
 module.exports = function(server) {
   //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
@@ -49,6 +51,13 @@ module.exports = function(server) {
     path: '/activity/new',
     handler: handlers.newActivity,
     config: {
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
+      pre: [
+        { method: fanout.forwardActivity },
+      ],
       validate: {
         payload: Joi.object().keys({
           activity_type: Joi.string(),
@@ -83,7 +92,10 @@ module.exports = function(server) {
           }),
           react_type: Joi.string(),
           rate_type: Joi.string()
-        }).requiredKeys('content_id', 'user_id', 'activity_type')
+        }).requiredKeys('content_id', 'user_id', 'activity_type'),
+        headers: Joi.object({
+          '----jwt----': Joi.string().description('JWT header provided by /login')
+        }).unknown(),
       },
       tags: ['api'],
       description: 'Create a new activity'
@@ -96,6 +108,13 @@ module.exports = function(server) {
     path: '/activities/new',
     handler: handlers.newActivities,
     config: {
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
+      pre: [
+        { method: fanout.forwardActivity },
+      ],
       validate: {
         payload: Joi.array().items(
           Joi.object().keys({
@@ -132,7 +151,10 @@ module.exports = function(server) {
             react_type: Joi.string(),
             rate_type: Joi.string()
           }).requiredKeys('content_id', 'user_id', 'activity_type')
-        )
+        ),
+        headers: Joi.object({
+          '----jwt----': Joi.string().description('JWT header provided by /login')
+        }).unknown(),
       },
       tags: ['api'],
       description: 'Create new activities'

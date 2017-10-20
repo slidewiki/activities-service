@@ -7,6 +7,9 @@ describe('REST API', () => {
 
   let server;
 
+  const JWT = require('jsonwebtoken');
+  const secret = 'NeverShareYourSecret';
+
   beforeEach((done) => {
     //Clean everything up before doing new tests
     Object.keys(require.cache).forEach((key) => delete require.cache[key]);
@@ -17,9 +20,26 @@ describe('REST API', () => {
       host: 'localhost',
       port: 3000
     });
-    require('../routes.js')(server);
-    done();
+
+    server.register(require('hapi-auth-jwt2'), (err) => {
+      if (err) {
+        console.error(err);
+        global.process.exit();
+      } else {
+        server.auth.strategy('jwt', 'jwt', {
+          key: secret,
+          validateFunc: (decoded, request, callback) => {callback(null, true);},
+          headerKey: '----jwt----',
+        });
+      }
+
+      require('../routes.js')(server);
+      done();
+    });
+
   });
+
+  let authToken = JWT.sign( { userid: 1 }, secret );
 
   let activity = {
     activity_type: 'add',
@@ -34,13 +54,14 @@ describe('REST API', () => {
     url: '/activity/new',
     payload: activity,
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      '----jwt----': authToken,
     }
   };
 
   context('when creating an activity it', () => {
-    it('should reply it', (done) => {
-      server.inject(options, (response) => {
+    it('should reply it', () => {
+      return server.inject(options).then((response) => {
         response.should.be.an('object').and.contain.keys('statusCode','payload');
         // console.log(response);
         response.statusCode.should.equal(200);
@@ -49,7 +70,6 @@ describe('REST API', () => {
         payload.should.be.an('object').and.contain.keys('content_id', 'timestamp', 'user_id');
         payload.content_id.should.equal('000000000000000000000000-1');
         payload.user_id.should.equal('000000000000000000000000');
-        done();
       });
     });
   });
