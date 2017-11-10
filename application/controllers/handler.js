@@ -208,18 +208,24 @@ let self = module.exports = {
 
     let id = request.payload.id;
     if (id === 'Sfn87Pfew9Af09aM') {//PERFORM RECREATION OF NOTIFICATIONS
+      rp.get({uri: Microservices.notification.uri + '/notifications/-1'})//get all notifications
+        .then((notifications) => {
 
-        activitiesDB.getAllFromCollection()
-        .then((activities) => {
-          activities.forEach((activity) => {
-            const existingNotification = notifications.find((notification) => {return notification.activity_id === activities._id;});
-            if (existingNotification === undefined) {//it was marked as read (deleted from the notifications-service)
-              recreateNotification(activity);
-              console.log('recreated notification, activity_id=' + activity._id);
-            }
-          });
-        }).catch((error) => {
-          console.log('db problem with recreation of notifications: ' + error);
+          activitiesDB.getAllFromCollection()
+            .then((activities) => {
+              activities.forEach((activity) => {
+                const existingNotification = notifications.find((notification) => {return notification.activity_id === activities._id;});
+                if (existingNotification === undefined) {//it was marked as read (deleted from the notifications-service)
+                  recreateNotification(activity);
+                  console.log('recreated notification, activity_id=' + activity._id);
+                }
+              });
+            }).catch((error) => {
+              console.log('db problem with recreation of notifications: ' + error);
+            });
+        })
+        .catch((error) => {
+          console.log('notifications service problem with recreation of notifications: ' + error);
         });
     }
 
