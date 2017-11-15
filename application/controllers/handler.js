@@ -30,10 +30,10 @@ function createNotification(activity) {
     comment_info: activity.comment_info,
     use_info: activity.use_info,
     react_type: activity.react_type,
-    rate_type:  activity.rate_type
+    rate_type:  activity.rate_type,
+    subscribed_user_id: activity.content_owner_id,
+    activity_id: activity.id
   };
-  notification.subscribed_user_id = activity.content_owner_id;
-  notification.activity_id = activity.id;
 
   let data = JSON.stringify(notification);
 
@@ -46,8 +46,6 @@ function createNotification(activity) {
 //used to recreate notifications which were marked as read by users
 function recreateNotification(activity) {
   let notification = {
-    new: false,
-    timestamp: activity.timestamp,
     activity_type: activity.activity_type,
     user_id: activity.user_id,
     content_id: activity.content_id,
@@ -59,10 +57,12 @@ function recreateNotification(activity) {
     comment_info: activity.comment_info,
     use_info: activity.use_info,
     react_type: activity.react_type,
-    rate_type:  activity.rate_type
+    rate_type:  activity.rate_type,
+    subscribed_user_id: activity.content_owner_id,
+    activity_id: activity._id,
+    timestamp: activity.timestamp,
+    new: false
   };
-  notification.subscribed_user_id = activity.content_owner_id;
-  notification.activity_id = activity.id;
 
   let data = JSON.stringify(notification);
 
@@ -176,8 +176,8 @@ let self = module.exports = {
     let id = request.payload.id;
     if (id === 'Sfn87Pfew9Af09aM') {//PERFORM RECREATION OF NOTIFICATIONS
       rp.get({uri: Microservices.notification.uri + '/notifications/-1'})//get all notifications
-        .then((notifications) => {
-
+        .then((res) => {
+          let notifications = JSON.parse(res);
           activitiesDB.getAllFromCollection()
             .then((activities) => {
               activities.forEach((activity) => {
