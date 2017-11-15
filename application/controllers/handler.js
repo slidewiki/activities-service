@@ -73,25 +73,6 @@ function recreateNotification(activity) {
 }
 
 let self = module.exports = {
-  //Get Activity from database or return NOT FOUND
-  getActivity: function(request, reply) {
-    return activitiesDB.get(encodeURIComponent(request.params.id)).then((activity) => {
-      if (co.isEmpty(activity))
-        reply(boom.notFound());
-      else {
-        return insertAuthor(activity).then((activity) => {
-
-          reply(co.rewriteID(activity));
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
-  },
 
   //Create Activity with new id and payload or return INTERNAL_SERVER_ERROR
   newActivity: function(request, reply) {
@@ -189,20 +170,6 @@ let self = module.exports = {
       });
   },
 
-  //Update Activity with id id and payload or return INTERNAL_SERVER_ERROR
-  updateActivity: function(request, reply) {
-    return activitiesDB.replace(encodeURIComponent(request.params.id), request.payload).then((replaced) => {
-      //console.log('updated: ', replaced);
-      if (co.isEmpty(replaced.value))
-        throw replaced;
-      else
-        reply(replaced.value);
-    }).catch((error) => {
-      tryRequestLog(request, 'error', error);
-      reply(boom.badImplementation());
-    });
-  },
-
   //Delete Activity with id id
   deleteActivity: function(request, reply) {
 
@@ -264,39 +231,79 @@ let self = module.exports = {
       self.getAllActivities(request, reply);
     } else {
       let content_kind = request.params.content_kind;
+      let content_id = request.params.id;
 
-      return getSubdecksAndSlides(content_kind, request.params.id).then((arrayOfDecksAndSlides) => {
-        let slideIdArray = [];
-        let deckIdArray = [];
+      const metaonly = request.query.metaonly;
+      const activity_type = request.query.activity_type;
+      const all_revisions = request.query.all_revisions;
+      const start = (request.query.start) ? request.query.start : 0;
+      const limit = (request.query.limit) ? request.query.limit : 0;
 
-        arrayOfDecksAndSlides.forEach((deckOrSlide) => {
-          if (deckOrSlide.type === 'slide') {
-            slideIdArray.push(deckOrSlide.id);
-          } else {
-            deckIdArray.push(deckOrSlide.id);
-          }
+      if (metaonly === 'true' && activity_type !== undefined) {
+        if (all_revisions === 'true') {
+          content_id = new RegExp('^' + request.params.id.split('-')[0]);
+        }
+
+        return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+          .then((count) => {
+            reply (count);
+          }).catch((error) => {
+            tryRequestLog(request, 'error', error);
+            reply(boom.badImplementation());
+          });
+      } else {
+
+        let activitiesPromise = getSubdecksAndSlides(content_kind, content_id).then((arrayOfDecksAndSlides) => {
+          let slideIdArray = [];
+          let deckIdArray = [];
+
+          arrayOfDecksAndSlides.forEach((deckOrSlide) => {
+            if (deckOrSlide.type === 'slide') {
+              slideIdArray.push(deckOrSlide.id);
+            } else {
+              deckIdArray.push(deckOrSlide.id);
+            }
+          });
+
+          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
+        }).catch((error) => {
+          tryRequestLog(request, 'error', error);
+          reply(boom.badImplementation());
         });
 
-        return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [])
+        if (activity_type !== undefined) {
+          if (all_revisions === 'true') {
+            content_id = new RegExp('^' + request.params.id.split('-')[0]);
+          }
+          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
+        }
+
+        return activitiesPromise
           .then((activities) => {
-            //limit the resuls
-            const start = request.params.start;
-            const limit = request.params.limit;
-            let activitiesLimited = activities;
-            if (start !== undefined && limit !== undefined) {
-              activitiesLimited = activities.slice(start, start + limit);
-            }
+            //limit the resuls if required
+            // let activitiesLimited = activities;
+            // if (start !== undefined) {
+            //   activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
+            // } else if (limit !== undefined) {
+            //   activitiesLimited = activities.slice(0, limit);
+            // }
             let arrayOfAuthorPromisses = [];
-            activitiesLimited.forEach((activity) => {
+            activities.forEach((activity) => {
               co.rewriteID(activity);
               let promise = insertAuthor(activity);
               arrayOfAuthorPromisses.push(promise);
             });
 
             Promise.all(arrayOfAuthorPromisses).then(() => {
-              let jsonReply = JSON.stringify(activitiesLimited);
-              reply(jsonReply);
-
+              if (metaonly === 'true') {
+                reply(activities.length);
+              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
+                let jsonReply = JSON.stringify(activities);
+                reply(jsonReply);
+              } else {
+                let jsonReply = JSON.stringify({items: activities, count: activities.length});
+                reply(jsonReply);
+              }
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
               reply(boom.badImplementation());
@@ -305,67 +312,8 @@ let self = module.exports = {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
+      }
     }
-  },
-
-  //Get All Activities of specified type from database for the content_kind and id in the request
-  getActivitiesOfType: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = request.params.id;
-
-    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
-  },
-
-  //Get All Activities of specified type from database for the content_kind and id (all revisions) in the request
-  getActivitiesOfTypeAllRevisions: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
-
-    return activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
   },
 
   //Get All Activities from database for subscriptions in the request
@@ -438,21 +386,6 @@ let self = module.exports = {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
-  },
-
-  //Get the number of activities of specified type from database for the content_kind and id (all revisions) in the request
-  getActivitiesCountAllRevisions: function(request, reply) {
-    let content_kind = request.params.content_kind;
-    let activity_type = request.params.activity_type;
-    let content_id = new RegExp('^' + request.params.id.split('-')[0]);
-
-    return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
-      .then((count) => {
-        reply (count);
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
   }
 };
 
@@ -503,35 +436,38 @@ function getArrayOfChildren(node) {//recursive
 //insert author data using user microservice
 function insertAuthor(activity) {
   let myPromise = new Promise((resolve, reject) => {
-    let username = 'unknown';
-    let avatar = '';
-    if (activity.user_id === undefined || activity.user_id === 'undefined' || activity.user_id === '0') {
+
+    if (activity.user_id === '0') {
       activity.author = {
-        id: activity.user_id,
-        username: username,
-        avatar: avatar
+        id: '0',
+        username: 'Guest'
+      };
+      resolve(activity);
+    } else if (activity.user_id === undefined || activity.user_id === 'undefined') {
+      console.log('Error user_id', activity.user_id);
+      activity.author = {
+        id: 'undefined',
+        username: 'unknown'
       };
       resolve(activity);
     } else {
       rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
+        let username = '';
         try {
           let parsed = JSON.parse(res);
           username = parsed.username;
-          avatar = parsed.picture;
         } catch(e) {
           console.log(e);
           activity.author = {
             id: activity.user_id,
-            username: username,
-            avatar: avatar
+            username: 'user ' + activity.user_id
           };
           resolve(activity);
         }
 
         activity.author = {
           id: activity.user_id,
-          username: username,
-          avatar: avatar
+          username: username
         };
         resolve(activity);
 
@@ -539,8 +475,7 @@ function insertAuthor(activity) {
         console.log('Error', err);
         activity.author = {
           id: activity.user_id,
-          username: username,
-          avatar: avatar
+          username: 'user ' + activity.user_id
         };
         resolve(activity);
       });
