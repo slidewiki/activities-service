@@ -182,7 +182,7 @@ let self = module.exports = {
             .then((activities) => {
               activities.forEach((activity) => {
                 const existingNotification = notifications.find((notification) => {return notification.activity_id === activities._id;});
-                if (existingNotification === undefined) {//it was marked as read (deleted from the notifications-service)
+                if (existingNotification === undefined && (activity.content_owner_id && activity.user_id !== activity.content_owner_id)) {//it was marked as read (deleted from the notifications-service)
                   recreateNotification(activity);
                   console.log('recreated notification, activity_id=' + activity._id);
                 }
@@ -494,7 +494,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
 
       let contentIdParts = activity.content_id.split('-');
       let contentRevisionId = (contentIdParts.length > 1) ? contentIdParts[contentIdParts.length - 1] : undefined;
-      if (title === undefined || ownerId === undefined || contentRevisionId === undefined) {// is it needed to call the deck-service?
+      if (title === undefined || title === null || ownerId === undefined || contentRevisionId === undefined) {// is it needed to call the deck-service?
         rp.get({uri: Microservices.deck.uri + '/' + activity.content_kind + '/' + activity.content_id}).then((res) => {
           try {
             let parsed = JSON.parse(res);
@@ -506,7 +506,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
                 if (ownerId === undefined) {
                   ownerId = contentRevision.user;
                 }
-                if (title === undefined) {
+                if (title === undefined || title === null) {
                   title = contentRevision.title;
                 }
               } else {//if revision from content_id is not found take data from active revision
@@ -516,7 +516,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
                   activeRevision = parsed.revisions.find((revision) =>  String(revision.id) ===  String(activeRevisionId));
                 }
                 if (activeRevision !== undefined) {
-                  if (title === undefined) {
+                  if (title === undefined || title === null) {
                     title = activeRevision.title;
                   }
                   if (contentRevisionId === undefined) {
