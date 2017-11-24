@@ -181,7 +181,7 @@ let self = module.exports = {
           activitiesDB.getAllFromCollection()
             .then((activities) => {
               activities.forEach((activity) => {
-                const existingNotification = notifications.find((notification) => {return notification.activity_id === activities._id;});
+                const existingNotification = notifications.find((notification) => {return notification.activity_id === String(activity._id);});
                 if (existingNotification === undefined && (activity.content_owner_id && activity.user_id !== activity.content_owner_id)) {//it was marked as read (deleted from the notifications-service)
                   recreateNotification(activity);
                   console.log('recreated notification, activity_id=' + activity._id);
