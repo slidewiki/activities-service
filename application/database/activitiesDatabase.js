@@ -18,10 +18,10 @@ module.exports = {
       }));
   },
 
-  getCountAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier) {
+  getCountAllOfTypeForDeckOrSlide: function(activityTypeArray, content_kind, identifier) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.count({content_kind: content_kind, content_id: identifier, activity_type: activity_type }));
+      .then((col) => col.count({$and: [{content_kind: content_kind, content_id: identifier}, {activity_type: { $in: activityTypeArray }}]}));
   },
 
   getAllForDeckOrSlide: function(content_kind, identifier, skip, limit) {
@@ -41,7 +41,7 @@ module.exports = {
       .then((stream) => stream.toArray());
   },
 
-  getAllOfTypeForDeckOrSlide: function(activity_type, content_kind, identifier, skip, limit) {
+  getAllOfTypeForDeckOrSlide: function(activityTypeArray, content_kind, identifier, skip, limit) {
     if (!skip) {
       skip = 0;
     } else {
@@ -54,7 +54,7 @@ module.exports = {
     }
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({content_kind: content_kind, content_id: identifier, activity_type: activity_type }).sort({timestamp: -1}).skip(skip).limit(limit))
+      .then((col) => col.find({$and: [{content_kind: content_kind, content_id: identifier}, {activity_type: { $in: activityTypeArray }}] }).sort({timestamp: -1}).skip(skip).limit(limit))
       .then((stream) => stream.toArray());
   },
 
@@ -69,7 +69,7 @@ module.exports = {
     } else {
       limit = parseInt(limit);
     }
-    
+
     makeOIDArray(idArray);
 
     const userIdQuery = {user_id: {$in: userIdArray}};

@@ -235,16 +235,20 @@ let self = module.exports = {
 
       const metaonly = request.query.metaonly;
       const activity_type = request.query.activity_type;
+      let activityTypeArray = activity_type;
+      if (activity_type !== undefined) {
+        activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
+      }
       const all_revisions = request.query.all_revisions;
       const start = (request.query.start) ? request.query.start : 0;
       const limit = (request.query.limit) ? request.query.limit : 0;
 
-      if (metaonly === 'true' && activity_type !== undefined) {
+      if (metaonly === 'true' && activityTypeArray !== undefined) {
         if (all_revisions === 'true') {
           content_id = new RegExp('^' + request.params.id.split('-')[0]);
         }
 
-        return activitiesDB.getCountAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id)
+        return activitiesDB.getCountAllOfTypeForDeckOrSlide(activityTypeArray, content_kind, content_id)
           .then((count) => {
             reply (count);
           }).catch((error) => {
@@ -271,11 +275,11 @@ let self = module.exports = {
           reply(boom.badImplementation());
         });
 
-        if (activity_type !== undefined) {
+        if (activityTypeArray !== undefined) {
           if (all_revisions === 'true') {
             content_id = new RegExp('^' + request.params.id.split('-')[0]);
           }
-          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activity_type, content_kind, content_id, start, limit);
+          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activityTypeArray, content_kind, content_id, start, limit);
         }
 
         return activitiesPromise

@@ -23,7 +23,7 @@ module.exports = function(server) {
         },
         query: {
           metaonly: Joi.string().description('Set to true to return only metadata without the list of activities'),
-          activity_type: Joi.string().description('Type of activities to be found'),
+          activity_type: [Joi.array().items(Joi.string()), Joi.string()],//an array or a single string
           all_revisions: Joi.string().description('Set to true to search for activities regardles of the content revision'),
           start: Joi.string().description('If defined, return activities starting from this index'),
           limit: Joi.string().description('If defined, return only this number of activities')
