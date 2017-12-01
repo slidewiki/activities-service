@@ -235,6 +235,7 @@ let self = module.exports = {
 
       const metaonly = request.query.metaonly;
       const activity_type = request.query.activity_type;
+      const include_subdecks_and_slides = request.query.include_subdecks_and_slides;//TODO use this and refactor
       let activityTypeArray = activity_type;
       if (activity_type !== undefined) {
         activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
@@ -243,7 +244,7 @@ let self = module.exports = {
       const start = (request.query.start) ? request.query.start : 0;
       const limit = (request.query.limit) ? request.query.limit : 0;
 
-      if (metaonly === 'true' && activityTypeArray !== undefined) {
+      if (metaonly === 'true' && activityTypeArray !== undefined && activityTypeArray.length === 1) {
         if (all_revisions === 'true') {
           content_id = new RegExp('^' + request.params.id.split('-')[0]);
         }
@@ -269,7 +270,7 @@ let self = module.exports = {
             }
           });
 
-          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
+          return activitiesDB.getAllWithProperties(activityTypeArray, [], slideIdArray, deckIdArray, [], 0, start, limit);
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
@@ -301,9 +302,6 @@ let self = module.exports = {
             Promise.all(arrayOfAuthorPromisses).then(() => {
               if (metaonly === 'true') {
                 reply(activities.length);
-              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
-                let jsonReply = JSON.stringify(activities);
-                reply(jsonReply);
               } else {
                 let jsonReply = JSON.stringify({items: activities, count: activities.length});
                 reply(jsonReply);
@@ -322,6 +320,12 @@ let self = module.exports = {
 
   //Get All Activities from database for subscriptions in the request
   getActivitiesSubscribed: function(request, reply) {
+    const activity_type = request.query.activity_type;
+    let activityTypeArray = activity_type;
+    if (activity_type !== undefined) {
+      activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
+    }
+
     const subscriptions = request.params.subscriptions.split('/');
     let userIdArray = [];
     let slideIdArray = [];
@@ -342,7 +346,7 @@ let self = module.exports = {
       }
     });
 
-    return activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray, ownerId)
+    return activitiesDB.getAllWithProperties(activityTypeArray, userIdArray, slideIdArray, deckIdArray, idArray, ownerId)
       .then((activities) => {
         let arrayOfAuthorPromisses = [];
         activities.forEach((activity) => {
