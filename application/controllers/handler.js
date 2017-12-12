@@ -276,7 +276,7 @@ let self = module.exports = {
           reply(boom.badImplementation());
         });
 
-        if (activityTypeArray !== undefined) {
+        if (activityTypeArray !== undefined && activityTypeArray.length === 1) {
           if (all_revisions === 'true') {
             content_id = new RegExp('^' + request.params.id.split('-')[0]);
           }
