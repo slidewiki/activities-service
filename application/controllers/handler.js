@@ -235,6 +235,7 @@ let self = module.exports = {
 
       const metaonly = request.query.metaonly;
       const activity_type = request.query.activity_type;
+      const include_subdecks_and_slides = request.query.include_subdecks_and_slides;//TODO use this and refactor
       let activityTypeArray = activity_type;
       if (activity_type !== undefined) {
         activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
@@ -243,14 +244,14 @@ let self = module.exports = {
       const start = (request.query.start) ? request.query.start : 0;
       const limit = (request.query.limit) ? request.query.limit : 0;
 
-      if (metaonly === 'true' && activityTypeArray !== undefined) {
+      if (metaonly === 'true' && activityTypeArray !== undefined && activityTypeArray.length === 1) {
         if (all_revisions === 'true') {
           content_id = new RegExp('^' + request.params.id.split('-')[0]);
         }
 
         return activitiesDB.getCountAllOfTypeForDeckOrSlide(activityTypeArray, content_kind, content_id)
           .then((count) => {
-            reply (count);
+            reply(count);
           }).catch((error) => {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
@@ -269,17 +270,21 @@ let self = module.exports = {
             }
           });
 
-          return activitiesDB.getAllWithProperties([], slideIdArray, deckIdArray, [], 0, start, limit);
+          return activitiesDB.getAllWithProperties(activityTypeArray, [], slideIdArray, deckIdArray, [], 0, start, limit);
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
         });
 
-        if (activityTypeArray !== undefined) {
-          if (all_revisions === 'true') {
-            content_id = new RegExp('^' + request.params.id.split('-')[0]);
+        if (activityTypeArray !== undefined && activityTypeArray.length === 1) {
+          if (content_kind === 'user') {
+            activitiesPromise = activitiesDB.getAllWithProperties(activityTypeArray, [content_id], [], [], [], 0, start, limit);
+          } else {
+            if (all_revisions === 'true') {
+              content_id = new RegExp('^' + request.params.id.split('-')[0]);
+            }
+            activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activityTypeArray, content_kind, content_id, start, limit);
           }
-          activitiesPromise = activitiesDB.getAllOfTypeForDeckOrSlide(activityTypeArray, content_kind, content_id, start, limit);
         }
 
         return activitiesPromise
@@ -291,79 +296,30 @@ let self = module.exports = {
             // } else if (limit !== undefined) {
             //   activitiesLimited = activities.slice(0, limit);
             // }
-            let arrayOfAuthorPromisses = [];
-            activities.forEach((activity) => {
-              co.rewriteID(activity);
-              let promise = insertAuthor(activity);
-              arrayOfAuthorPromisses.push(promise);
-            });
+            if (metaonly === 'true') {
+              reply(activities.length);
+            } else {
+              let arrayOfAuthorPromisses = [];
+              activities.forEach((activity) => {
+                co.rewriteID(activity);
+                let promise = insertAuthor(activity);
+                arrayOfAuthorPromisses.push(promise);
+              });
 
-            Promise.all(arrayOfAuthorPromisses).then(() => {
-              if (metaonly === 'true') {
-                reply(activities.length);
-              } else if (request.params.start){//FOR BACKWARD COMPATIBILITY - WILL BE REMOVED
-                let jsonReply = JSON.stringify(activities);
-                reply(jsonReply);
-              } else {
+              Promise.all(arrayOfAuthorPromisses).then(() => {
                 let jsonReply = JSON.stringify({items: activities, count: activities.length});
                 reply(jsonReply);
-              }
-            }).catch((error) => {
-              tryRequestLog(request, 'error', error);
-              reply(boom.badImplementation());
-            });
+              }).catch((error) => {
+                tryRequestLog(request, 'error', error);
+                reply(boom.badImplementation());
+              });
+            }
           }).catch((error) => {
             tryRequestLog(request, 'error', error);
             reply(boom.badImplementation());
           });
       }
     }
-  },
-
-  //Get All Activities from database for subscriptions in the request
-  getActivitiesSubscribed: function(request, reply) {
-    const subscriptions = request.params.subscriptions.split('/');
-    let userIdArray = [];
-    let slideIdArray = [];
-    let deckIdArray = [];
-    let idArray = [];
-    let ownerId = undefined;
-    subscriptions.forEach((subscription) => {
-      if (subscription.startsWith('u')) {
-        userIdArray.push(subscription.substring(1));
-      } else if (subscription.startsWith('s')) {
-        slideIdArray.push(subscription.substring(1));
-      } else if (subscription.startsWith('d')) {
-        deckIdArray.push(subscription.substring(1));
-      } else if (subscription.startsWith('i')) {
-        idArray.push(subscription.substring(1));
-      } else if (subscription.startsWith('o')) {
-        ownerId = subscription.substring(1);
-      }
-    });
-
-    return activitiesDB.getAllWithProperties(userIdArray, slideIdArray, deckIdArray, idArray, ownerId)
-      .then((activities) => {
-        let arrayOfAuthorPromisses = [];
-        activities.forEach((activity) => {
-          co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
-        });
-
-        Promise.all(arrayOfAuthorPromisses).then(() => {
-          let jsonReply = JSON.stringify(activities);
-          reply(jsonReply);
-
-        }).catch((error) => {
-          tryRequestLog(request, 'error', error);
-          reply(boom.badImplementation());
-        });
-
-      }).catch((error) => {
-        tryRequestLog(request, 'error', error);
-        reply(boom.badImplementation());
-      });
   },
 
   //Get All Activities from database
@@ -395,7 +351,7 @@ let self = module.exports = {
 
 function getSubdecksAndSlides(content_kind, id) {
   let myPromise = new Promise((resolve, reject) => {
-    if (content_kind === 'slide') {
+    if (content_kind !== 'deck') {
       resolve([{
         type: content_kind,
         id: id

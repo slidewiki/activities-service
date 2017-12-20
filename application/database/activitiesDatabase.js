@@ -52,13 +52,19 @@ module.exports = {
     } else {
       limit = parseInt(limit);
     }
+
+    let query = {content_kind: content_kind, content_id: identifier};
+    const activityTypeQuery = {activity_type: {$in: activityTypeArray}};
+    if (activityTypeArray !== undefined && activityTypeArray.length > 0) {
+      query = {$and: [activityTypeQuery, query]};
+    }
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({$and: [{content_kind: content_kind, content_id: identifier}, {activity_type: { $in: activityTypeArray }}] }).sort({timestamp: -1}).skip(skip).limit(limit))
+      .then((col) => col.find(query).sort({timestamp: -1}).skip(skip).limit(limit))
       .then((stream) => stream.toArray());
   },
 
-  getAllWithProperties: function(userIdArray, slideIdArray, deckIdArray, idArray, ownerId, skip, limit) {
+  getAllWithProperties: function(activityTypeArray, userIdArray, slideIdArray, deckIdArray, idArray, ownerId, skip, limit) {
     if (!skip) {
       skip = 0;
     } else {
@@ -72,6 +78,7 @@ module.exports = {
 
     makeOIDArray(idArray);
 
+    const activityTypeQuery = {activity_type: {$in: activityTypeArray}};
     const userIdQuery = {user_id: {$in: userIdArray}};
     const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
     const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
@@ -82,10 +89,14 @@ module.exports = {
     //This will be changed when proper subscription is implemented
 
     const ownerQuery = {$and: [{content_owner_id: ownerId}, { user_id: { $ne: ownerId } }]};
-    const query = (ownerId !== undefined && ownerId !== 0) ?
+    let query = (ownerId !== undefined && ownerId !== 0) ?
       {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
       :
       {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
+
+    if (activityTypeArray !== undefined && activityTypeArray.length > 0) {
+      query = {$and: [activityTypeQuery, query]};
+    }
     // const query = {$or: [{user_id: {$in: []}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}]};
 
     return helper.connectToDatabase()

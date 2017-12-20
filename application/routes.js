@@ -18,12 +18,13 @@ module.exports = function(server) {
     config: {
       validate: {
         params: {
-          content_kind: Joi.string().valid('deck', 'slide'),
-          id: Joi.string().description('The id of the deck/slide')
+          content_kind: Joi.string().valid('deck', 'slide', 'user'),
+          id: Joi.string().description('The id of the deck/slide/user')
         },
         query: {
           metaonly: Joi.string().description('Set to true to return only metadata without the list of activities'),
           activity_type: [Joi.array().items(Joi.string()), Joi.string()],//an array or a single string
+          include_subdecks_and_slides: Joi.string().description('Set to true to include activities of subdecks and slides'),
           all_revisions: Joi.string().description('Set to true to search for activities regardles of the content revision'),
           start: Joi.string().description('If defined, return activities starting from this index'),
           limit: Joi.string().description('If defined, return only this number of activities')
@@ -33,17 +34,6 @@ module.exports = function(server) {
       description: 'Get a list of activities'
     }
   });
-
-  //Get activities matching subscriptions from database and return the entire list (when not available, return NOT FOUND).
-  server.route({
-    method: 'GET',
-    path: '/activities/subscribed/{subscriptions*}',
-    handler: handlers.getActivitiesSubscribed,
-    config: {
-      tags: ['api'],
-      description: 'Get a list of subscribed activities (example parameter: u16/s8) )'
-    }
-  });//TODO if the url length is critical -> use POST instead?
 
   //Create new activity (by payload) and return it (...). Validate payload
   server.route({
