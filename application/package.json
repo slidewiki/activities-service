@@ -39,6 +39,7 @@
     "mongodb": "^2.2.28",
     "request": "^2.79.0",
     "request-promise-native": "^1.0.3",
+    "tincanjs": "^0.50.0",
     "vision": "^4.1.0"
   },
   "engines": {

@@ -40,15 +40,45 @@ if (process.env.NODE_ENV === 'test') {
 
 
 module.exports = {
+
   MongoDB: {
     PORT: port,
     HOST: host,
     NS: 'local',
     SLIDEWIKIDATABASE: slidewikiDbName
   },
+
   JWT: {
     SERIAL: JWTSerial,
     HEADER: '----jwt----',
     ALGORITHM:  'HS512'
   },
+
+  // TODO setup defaults / env variables for the LRS connection parameters
+
+  /*
+  LRS: {
+    endpoint: 'http://localhost/data/xAPI/',
+    username: '4a329c5713654db2a6aa41260af684e3dc31ee6d',
+    password: '883244eb455a9666233f6c0dc1cdda15a0ac2dd7',
+    allowFail: false,
+  },
+  */
+
+  /*
+  LRS: {
+    endpoint: 'http://localhost:8081/data/xAPI',
+    username: 'a9a90415ab9aaa531efb5ca9ee5e1998901b4edb',
+    password: '8e0f88a9a40efa60e3dd7aa4dd5eee3c79855594',
+    allowFail: false,
+  },
+  */
+
+  LRS: {
+    endpoint: 'https://learninglocker.experimental.slidewiki.org/data/xAPI',
+    username: '65314590b80412fd6c8bc081c3b2f9cf2e2d62c1',
+    password: 'f49decea58e1cd8f1dd10e168fc74631c980450f',
+    allowFail: false,
+  },
+
 };

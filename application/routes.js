@@ -46,7 +46,7 @@ module.exports = function(server) {
         strategy: 'jwt'
       },
       pre: [
-        { method: fanout.forwardActivity },
+        { method: fanout.processActivity },
       ],
       validate: {
         payload: Joi.object().keys({
@@ -103,7 +103,7 @@ module.exports = function(server) {
         strategy: 'jwt'
       },
       pre: [
-        { method: fanout.forwardActivity },
+        { method: fanout.processActivity },
       ],
       validate: {
         payload: Joi.array().items(
