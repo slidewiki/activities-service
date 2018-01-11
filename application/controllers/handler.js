@@ -270,7 +270,7 @@ let self = module.exports = {
             }
           });
 
-          return activitiesDB.getAllWithProperties(activityTypeArray, [], slideIdArray, deckIdArray, [], 0, start, limit);
+          return activitiesDB.getAllWithProperties(activityTypeArray, [], slideIdArray, deckIdArray, [], start, limit);
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
           reply(boom.badImplementation());
@@ -278,7 +278,7 @@ let self = module.exports = {
 
         if (activityTypeArray !== undefined && activityTypeArray.length === 1) {
           if (content_kind === 'user') {
-            activitiesPromise = activitiesDB.getAllWithProperties(activityTypeArray, [content_id], [], [], [], 0, start, limit);
+            activitiesPromise = activitiesDB.getAllWithProperties(activityTypeArray, [content_id], [], [], [], start, limit);
           } else {
             if (all_revisions === 'true') {
               content_id = new RegExp('^' + request.params.id.split('-')[0]);

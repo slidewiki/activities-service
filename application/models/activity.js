@@ -88,6 +88,14 @@ const activity = {
       content_name: {
         type: 'string'
       }
+    },
+    move_info: {
+      source_id: {
+        type: 'string'
+      },
+      target_id: {
+        type: 'string'
+      }
     }
   },
   required: ['content_id', 'user_id', 'activity_type']

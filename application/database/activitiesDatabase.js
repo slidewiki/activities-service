@@ -64,7 +64,7 @@ module.exports = {
       .then((stream) => stream.toArray());
   },
 
-  getAllWithProperties: function(activityTypeArray, userIdArray, slideIdArray, deckIdArray, idArray, ownerId, skip, limit) {
+  getAllWithProperties: function(activityTypeArray, userIdArray, slideIdArray, deckIdArray, idArray, skip, limit) {
     if (!skip) {
       skip = 0;
     } else {
@@ -80,24 +80,16 @@ module.exports = {
 
     const activityTypeQuery = {activity_type: {$in: activityTypeArray}};
     const userIdQuery = {user_id: {$in: userIdArray}};
-    const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }]};
+    const slideIdQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }, {move_info: {$exists: false}} ]};
+    const slideIdMoveQuery = {$and: [{content_kind: 'slide'}, { content_id: { $in: slideIdArray } }, {move_info: {$exists: true}}, { 'move_info.source_id': { $in: deckIdArray } }]};//check that move activity for a slide belongs to some subdeck
     const deckIdQuery = {$and: [{content_kind: 'deck'}, { content_id: { $in: deckIdArray } }]};
     const idQuery = {_id: {$in: idArray}};
 
-    //Modified ownerQuery to exclude documents where user_id i ownerId
-    //This is temporary solution for the user notifications
-    //This will be changed when proper subscription is implemented
-
-    const ownerQuery = {$and: [{content_owner_id: ownerId}, { user_id: { $ne: ownerId } }]};
-    let query = (ownerId !== undefined && ownerId !== 0) ?
-      {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery, ownerQuery]}
-      :
-      {$or: [userIdQuery, slideIdQuery, deckIdQuery, idQuery]};
+    let query = {$or: [userIdQuery, slideIdQuery, slideIdMoveQuery, deckIdQuery, idQuery]};
 
     if (activityTypeArray !== undefined && activityTypeArray.length > 0) {
       query = {$and: [activityTypeQuery, query]};
     }
-    // const query = {$or: [{user_id: {$in: []}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}, {$and: [{content_kind: 'slide'}, { content_id: { $in: [] } }]}]};
 
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))

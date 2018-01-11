@@ -80,6 +80,10 @@ module.exports = function(server) {
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
             content_name: Joi.string()
           }),
+          move_info: Joi.object().keys({
+            source_id: Joi.string(),
+            target_id: Joi.string()
+          }),
           react_type: Joi.string(),
           rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type'),
@@ -137,6 +141,10 @@ module.exports = function(server) {
               content_id: Joi.string(),
               content_kind: Joi.string().valid('deck', 'slide', 'group'),
               content_name: Joi.string()
+            }),
+            move_info: Joi.object().keys({
+              source_id: Joi.string(),
+              target_id: Joi.string()
             }),
             react_type: Joi.string(),
             rate_type: Joi.string()
