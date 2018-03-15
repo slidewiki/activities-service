@@ -24,6 +24,37 @@ module.exports = {
       .then((col) => col.count({$and: [{content_kind: content_kind, content_id: identifier}, {activity_type: { $in: activityTypeArray }}]}));
   },
 
+  getMaxCountFromCollection: function(activityTypeArray, all_revisions, contentKindArray, limit) {
+
+    if (!limit) {
+      limit = 10;
+    } else {
+      limit = parseInt(limit);
+    }
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.aggregate(
+        {
+          $match: {
+            content_kind: { $in: contentKindArray },
+            activity_type: { $in: activityTypeArray }
+          }
+        },
+        {
+          $group: {
+            _id: {content_kind: '$content_kind', content_id: '$content_id'},
+            count: {$sum: 1}
+          }
+        },
+        {
+          $sort: {
+            count: -1
+          }
+        }
+      ).limit(limit)
+      ).then((stream) => stream.toArray());
+  },
+
   getAllForDeckOrSlide: function(content_kind, identifier, skip, limit) {
     if (!skip) {
       skip = 0;

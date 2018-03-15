@@ -346,6 +346,33 @@ let self = module.exports = {
         tryRequestLog(request, 'error', error);
         reply(boom.badImplementation());
       });
+  },
+
+
+  //Count activities of certain type, group by deck/slide ids and return max
+  getActivitiesMaxCount: function(request, reply) {
+    const all_revisions = request.query.all_revisions;
+    const activity_type = request.query.activity_type;
+    let activityTypeArray = activity_type;
+    if (activity_type !== undefined) {
+      activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
+    }
+    const content_kind = request.query.content_kind;
+    let contentKindArray = content_kind;
+    if (content_kind !== undefined) {
+      contentKindArray = (content_kind.constructor !== Array) ? [content_kind] : content_kind;
+    } else {
+      contentKindArray = ['deck', 'slide'] ;
+    }
+
+    const limit = (request.query.limit) ? request.query.limit : 10;
+    return activitiesDB.getMaxCountFromCollection(activityTypeArray, all_revisions, contentKindArray, limit)
+      .then((maxCount) => {
+        reply(maxCount);
+      }).catch((error) => {
+        tryRequestLog(request, 'error', error);
+        reply(boom.badImplementation());
+      });
   }
 };
 

@@ -10,6 +10,27 @@ const Joi = require('joi'),
 const fanout = require('./controllers/fanout');
 
 module.exports = function(server) {
+
+  //Count activities of certain type, group by deck/slide ids and return max
+  server.route({
+    method: 'GET',
+    path: '/activities/maxCount',
+    handler: handlers.getActivitiesMaxCount,
+    config: {
+      validate: {
+        query: {
+          activity_type: [Joi.array().items(Joi.string()), Joi.string()],//an array or a single string
+          all_revisions: Joi.string().description('Set to true to search for activities regardles of the content revision'),
+          limit: Joi.string().description('If defined, return only this number of results'),
+          content_kind: [Joi.array().items(Joi.string()), Joi.string()],//an array or a single string
+        }
+      },
+      tags: ['api'],
+      description: 'Count activities of certain type, grouped by deck/slide ids and return max results'
+    }
+  });
+
+
   //Get activities with content id id from database and return the entire list (when not available, return NOT FOUND). Validate id
   server.route({
     method: 'GET',
