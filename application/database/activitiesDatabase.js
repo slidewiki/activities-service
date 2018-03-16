@@ -31,6 +31,16 @@ module.exports = {
     } else {
       limit = parseInt(limit);
     }
+    let groupAggregate = (all_revisions === 'true') ?
+      {
+        _id: {content_kind: '$content_kind', content_id: {$substr: ['$content_id', 0, indexOfRevisionSeparator('$content_id', '-')]}},
+        count: {$sum: 1}
+      } :
+      {
+        _id: {content_kind: '$content_kind', content_id: '$content_id'},
+        count: {$sum: 1}
+      };
+
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
       .then((col) => col.aggregate(
@@ -41,17 +51,14 @@ module.exports = {
           }
         },
         {
-          $group: {
-            _id: {content_kind: '$content_kind', content_id: '$content_id'},
-            count: {$sum: 1}
-          }
+          $group: groupAggregate
         },
         {
           $sort: {
-            count: -1
+            'count': -1
           }
         }
-      ).limit(limit)
+      ).sort({count: -1}).limit(limit)
       ).then((stream) => stream.toArray());
   },
 
@@ -258,4 +265,22 @@ function makeOIDArray(array) {
       array[i] = oid(array[i]);
     }
   }
+}
+
+//https://stackoverflow.com/questions/28282334/mongodb-group-by-field-using-substr
+// There is a dirty but working solution based on this link http://www.kamsky.org/stupid-tricks-with-mongodb/ugly-way-to-parse-a-string-with-aggregation-framework So, why not?
+//
+// To find a symbol position in the string, we can build a complex condition to sequentally check each symbol of the string for matching symbol. It is basically similar to how indexOf function works.
+function indexOfRevisionSeparator(field, character) {
+  let array = [];
+  let maxPos = 20;
+  let searchStart = 0;
+
+  array[maxPos]={'$cond':{'if':{'$eq':[{'$substr':[field,maxPos,1]},character]},'then':maxPos+1,else:0}};
+
+  for ( let i=maxPos-1; i>searchStart-1; i-- ) {
+    array[i]={'$cond':{'if':{'$eq':[{'$substr':[field,i,1]},character]},'then':i,'else':array[i+1]}};
+  }
+
+  return array[searchStart];
 }
