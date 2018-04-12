@@ -64,8 +64,9 @@ let self = module.exports = {
             throw inserted;
           else {
             return insertAuthor(inserted.ops[0]).then((activity) => {
+              const activity_types_for_notifications = ['translate', 'share', 'add', 'edit', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'fork', 'delete', 'joined', 'left'];
               activity = co.rewriteID(activity);
-              if (activity.content_owner_id && activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
+              if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
                 createNotification(activity);
               }
               reply(activity);
