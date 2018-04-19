@@ -245,14 +245,11 @@ let self = module.exports = {
             if (metaonly === 'true') {
               reply(activities.length);
             } else {
-              let arrayOfAuthorPromisses = [];
               activities.forEach((activity) => {
                 co.rewriteID(activity);
-                let promise = insertAuthor(activity);
-                arrayOfAuthorPromisses.push(promise);
               });
 
-              Promise.all(arrayOfAuthorPromisses).then(() => {
+              insertAuthors(activities).then((activities) => {
                 let jsonReply = JSON.stringify({items: activities, count: activities.length});
                 reply(jsonReply);
               }).catch((error) => {
@@ -272,14 +269,11 @@ let self = module.exports = {
   getAllActivities: function(request, reply) {
     return activitiesDB.getAllFromCollection()
       .then((activities) => {
-        let arrayOfAuthorPromisses = [];
         activities.forEach((activity) => {
           co.rewriteID(activity);
-          let promise = insertAuthor(activity);
-          arrayOfAuthorPromisses.push(promise);
         });
 
-        Promise.all(arrayOfAuthorPromisses).then(() => {
+        insertAuthors(activities).then((activities) => {
           let jsonReply = JSON.stringify(activities);
           reply(jsonReply);
 
@@ -411,6 +405,84 @@ function insertAuthor(activity) {
           username: 'user ' + activity.user_id
         };
         resolve(activity);
+      });
+    }
+  });
+
+  return myPromise;
+}
+
+//insert author data to an array of activities using user microservice
+function insertAuthors(activities) {
+  let myPromise = new Promise((resolve, reject) => {
+
+    //Create array of user ids
+    let arrayOfUserIds = [];
+    activities.forEach((activity) => {
+      const id = activity.user_id;
+      if (id !== '0' && !arrayOfUserIds.includes(id)) {
+        arrayOfUserIds.push(id);
+      }
+    });
+
+    if (arrayOfUserIds.length === 0) {
+      activities.forEach((activity) => {
+        activity.author = {
+          id: '0',
+          username: 'Guest'
+        };
+      });
+      resolve(activities);
+    } else {
+
+      let data = JSON.stringify(arrayOfUserIds);
+      rp.post({uri: Microservices.user.uri + '/users', body:data}).then((res) => {
+        try {
+          let userDataArray = JSON.parse(res);
+
+          userDataArray.forEach((userData) => {
+            let userId = userData._id;
+            let username = userData.username;
+            activities.forEach((activity) => {
+              if (activity.user_id === userId) {
+                activity.author = {
+                  id: activity.user_id,
+                  username: username
+                };
+              }
+            });
+          });
+
+          activities.forEach((activity) => {
+            if (activity.author === undefined) {
+              activity.author = {
+                id: activity.user_id,
+                username: 'Guest'
+              };
+            }
+          });
+          resolve(activities);
+
+        } catch(e) {
+          console.log(e);
+          activities.forEach((activity) => {
+            activity.author = {
+              id: activity.user_id,
+              username: 'user ' + activity.user_id
+            };
+          });
+          resolve(activities);
+        }
+
+      }).catch((err) => {
+        console.log('Error', err);
+        activities.forEach((activity) => {
+          activity.author = {
+            id: activity.user_id,
+            username: 'user ' + activity.user_id
+          };
+        });
+        resolve(activities);
       });
     }
   });

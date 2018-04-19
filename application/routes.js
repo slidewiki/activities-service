@@ -75,7 +75,7 @@ module.exports = function(server) {
           user_id: Joi.string(),
           content_id: Joi.string(),
           content_kind: Joi.string().valid('deck', 'slide', 'group'),
-          content_name: Joi.string(),
+          content_name: Joi.string().allow(''),
           content_owner_id: Joi.string(),
           translation_info: Joi.object().keys({
             content_id: Joi.string(),
@@ -102,7 +102,7 @@ module.exports = function(server) {
           delete_info: Joi.object().keys({
             content_id: Joi.string(),
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
-            content_name: Joi.string()
+            content_name: Joi.string().allow('')
           }),
           move_info: Joi.object().keys({
             source_id: Joi.string(),
@@ -140,7 +140,7 @@ module.exports = function(server) {
             user_id: Joi.string(),
             content_id: Joi.string(),
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
-            content_name: Joi.string(),
+            content_name: Joi.string().allow(''),
             content_owner_id: Joi.string(),
             translation_info: Joi.object().keys({
               content_id: Joi.string(),
@@ -167,7 +167,7 @@ module.exports = function(server) {
             delete_info: Joi.object().keys({
               content_id: Joi.string(),
               content_kind: Joi.string().valid('deck', 'slide', 'group'),
-              content_name: Joi.string()
+              content_name: Joi.string().allow('')
             }),
             move_info: Joi.object().keys({
               source_id: Joi.string(),
