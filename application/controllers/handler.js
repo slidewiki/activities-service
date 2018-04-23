@@ -419,7 +419,7 @@ function insertAuthors(activities) {
     //Create array of user ids
     let arrayOfUserIds = [];
     activities.forEach((activity) => {
-      const id = activity.user_id;
+      const id = parseInt(activity.user_id);
       if (id !== '0' && !arrayOfUserIds.includes(id)) {
         arrayOfUserIds.push(id);
       }
