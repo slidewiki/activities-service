@@ -56,7 +56,8 @@ const activity = {
       comment_id: objectid,
       text: {
         type: 'string'
-      }
+      },
+      parent_comment_owner_id: objectid
     },
     use_info: {
       target_id:  {

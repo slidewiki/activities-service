@@ -123,20 +123,7 @@ let self = module.exports = {
 
                 if (activity.activity_type === 'reply') {
                   //find the parent comment owner and create notification
-
-
-
-
-                  //docker compose: - SERVICE_URL_DISCUSSION=https://discussionservice.experimental.slidewiki.org
-//microservices: ,
-// 'discussion': {
-//   uri: (!co.isEmpty(process.env.SERVICE_URL_DISCUSSION)) ? process.env.SERVICE_URL_DISCUSSION : 'http://discussionservice'
-// }
-
-
-//MOZDA I NE, MOZDA DA SE USERID DOBIJE SA PLATFORME...
-
-
+                  const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
 
                   if (activity.user_id !== parentCommentOwnerId) {
                     createNotification(activity, parentCommentOwnerId);
