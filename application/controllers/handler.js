@@ -10,7 +10,6 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
   co = require('../common');
 
 const Microservices = require('../configs/microservices');
-// let http = require('http');
 let rp = require('request-promise-native');
 
 //Send request to insert new notification
@@ -59,7 +58,6 @@ let self = module.exports = {
         }
 
         activitiesDB.insert(request.payload).then((inserted) => {
-          //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
             throw inserted;
           else {
@@ -109,7 +107,6 @@ let self = module.exports = {
         }
 
         activitiesDB.insertArray(activities).then((inserted) => {
-          //console.log('inserted: ', inserted);
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
             throw inserted;
           else {
@@ -239,13 +236,6 @@ let self = module.exports = {
 
         return activitiesPromise
           .then((activities) => {
-            //limit the resuls if required
-            // let activitiesLimited = activities;
-            // if (start !== undefined) {
-            //   activitiesLimited = (limit === undefined) ? activities.slice(start) : activities.slice(start, start + limit);
-            // } else if (limit !== undefined) {
-            //   activitiesLimited = activities.slice(0, limit);
-            // }
             if (metaonly === 'true') {
               reply(activities.length);
             } else {
