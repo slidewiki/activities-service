@@ -14,7 +14,7 @@ const Microservices = require('../configs/microservices');
 let rp = require('request-promise-native');
 
 //Send request to insert new notification
-function createNotification(activity) {
+function createNotification(activity, subscribed_user_id) {
   //TODO find list of subscribed users
   // if (activity.content_id.split('-')[0] === '8') {//current dummy user is subscribed to this content_id
 
@@ -31,7 +31,7 @@ function createNotification(activity) {
     use_info: activity.use_info,
     react_type: activity.react_type,
     rate_type:  activity.rate_type,
-    subscribed_user_id: activity.content_owner_id,
+    subscribed_user_id: subscribed_user_id,
     activity_id: activity.id
   };
 
@@ -67,7 +67,7 @@ let self = module.exports = {
               const activity_types_for_notifications = ['translate', 'share', 'add', 'edit', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'fork', 'delete', 'joined', 'left'];
               activity = co.rewriteID(activity);
               if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
-                createNotification(activity);
+                createNotification(activity, activity.content_owner_id);
               }
               reply(activity);
             }).catch((error) => {
@@ -113,24 +113,28 @@ let self = module.exports = {
           if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
             throw inserted;
           else {
-            let arrayOfAuthorPromises = [];
-            inserted.ops.forEach((activity) => {
-              let promise = insertAuthor(activity);
-              arrayOfAuthorPromises.push(promise);
-            });
-            return Promise.all(arrayOfAuthorPromises)
-              .then((activities) => {
-                activities.forEach((activity) => {
-                  activity = co.rewriteID(activity);
-                  if (activity.user_id !== activity.content_owner_id) {// notify user if it wasn't him/her that created the activity
-                    createNotification(activity);
+            const activity_types_for_notifications = ['translate', 'share', 'add', 'edit', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'fork', 'delete', 'joined', 'left'];
+            return insertAuthors(inserted.ops).then((activities) => {
+              activities.forEach((activity) => {
+                activity = co.rewriteID(activity);
+                if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
+                  createNotification(activity, activity.content_owner_id);
+                }
+
+                if (activity.activity_type === 'reply') {
+                  //find the parent comment owner and create notification
+                  const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
+
+                  if (activity.user_id !== parentCommentOwnerId) {
+                    createNotification(activity, parentCommentOwnerId);
                   }
-                });
-                reply(activities);
-              }).catch((error) => {
-                tryRequestLog(request, 'error', error);
-                reply(boom.badImplementation());
+                }
               });
+              reply(activities);
+            }).catch((error) => {
+              tryRequestLog(request, 'error', error);
+              reply(boom.badImplementation());
+            });
           }
         }).catch((error) => {
           tryRequestLog(request, 'error', error);
