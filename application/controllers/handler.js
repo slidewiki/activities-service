@@ -67,6 +67,15 @@ let self = module.exports = {
               if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
                 createNotification(activity, activity.content_owner_id);
               }
+
+              if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
+                //find the parent comment owner and create notification
+                const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
+
+                if (activity.user_id !== parentCommentOwnerId) {
+                  createNotification(activity, parentCommentOwnerId);
+                }
+              }
               reply(activity);
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
@@ -118,7 +127,7 @@ let self = module.exports = {
                   createNotification(activity, activity.content_owner_id);
                 }
 
-                if (activity.activity_type === 'reply') {
+                if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
                   //find the parent comment owner and create notification
                   const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
 
