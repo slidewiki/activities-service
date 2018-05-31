@@ -7,7 +7,7 @@ const self = module.exports = {
 
   saveActivity: function(activity, credentials) {
     return transforms.transform(activity, credentials).then((statement) => {
-      console.log(statement);
+      // console.log(statement);
 
       return new Promise((resolve, reject) => {
         getLRS().saveStatement(statement, {
