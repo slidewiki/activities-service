@@ -19,7 +19,9 @@ const self = module.exports = {
         activity.content = item;
 
         // TODO these should be removed after we have a sane deck/slide response model
-        Object.assign(activity.content, item.revisions[0]);
+        if (item.revisions && item.revisions[0]) {
+          Object.assign(activity.content, item.revisions[0]);
+        }
         activity.content.id = activity.content._id;
 
         delete activity.content._id;
@@ -51,12 +53,9 @@ const self = module.exports = {
 
 const transforms = {};
 function getTransform(activityType) {
-  console.log('tansforms.activityType='+activityType);
-
   let transform = transforms[activityType];
   if (transform) return transform;
 
-  console.log('transform='+transform);
   ({ transform } = require(`./transforms/${activityType}`));
   transforms[activityType] = transform;
 

@@ -6,13 +6,10 @@ const transforms = require('../lib/transforms');
 const self = module.exports = {
 
   saveActivity: function(activity, credentials) {
-    console.log('Saving activity: ' + JSON.stringify(activity));
     return transforms.transform(activity, credentials).then((statement) => {
+      console.log(statement);
 
       return new Promise((resolve, reject) => {
-        console.log('Statement being sent is: ');
-        console.log(JSON.stringify(statement));
-        console.log('Statement finished.');
         getLRS().saveStatement(statement, {
           callback: (httpErrorCode, xhr) => {
             if (httpErrorCode !== null) {
@@ -21,22 +18,19 @@ const self = module.exports = {
                 let details;
                 try {
                   details = JSON.parse(xhr.responseText);
-                  console.log(JSON.stringify(details));
                 } catch (err) {
-                  console.log('Error 1: ' + err);
+                  // could not parse the details as JSON, will include the message as-is
                 }
 
                 errMessage.push(details && details.message || xhr.responseText);
               } else {
+                // nothing more specific other than the error code
                 errMessage.push(`HTTP Error Code: ${httpErrorCode}`);
               }
-              console.log(JSON.stringify({activity, statement}));
               errMessage.push(JSON.stringify({activity, statement}));
-              console.log('Error 2: ' + errMessage);
               return reject(new Error(errMessage));
             }
-            console.log('XHR: ' + xhr.responseText);
-            console.log('Resolving statement ' + statement);
+
             resolve(statement);
           }
 

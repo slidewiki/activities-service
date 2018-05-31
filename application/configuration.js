@@ -55,30 +55,20 @@ module.exports = {
   },
 
   // TODO setup defaults / env variables for the LRS connection parameters
-
   /*
   LRS: {
-    endpoint: 'http://localhost/data/xAPI/',
-    username: '4a329c5713654db2a6aa41260af684e3dc31ee6d',
-    password: '883244eb455a9666233f6c0dc1cdda15a0ac2dd7',
-    allowFail: false,
-  },
-  */
-
-  /*
-  LRS: {
-    endpoint: 'http://localhost:8081/data/xAPI',
-    username: 'a9a90415ab9aaa531efb5ca9ee5e1998901b4edb',
-    password: '8e0f88a9a40efa60e3dd7aa4dd5eee3c79855594',
-    allowFail: false,
+    endpoint: 'http://172.18.0.6:8081/data/xAPI',
+    username: 'a792fc3d5ec750e52af69e10d10729437572aab0',
+    password: 'c3ff7aff34572743975ea90be55c323f26c52440',
+    allowFail: true,
   },
   */
 
   LRS: {
-    endpoint: 'https://learninglocker.experimental.slidewiki.org/data/xAPI',
-    username: '65314590b80412fd6c8bc081c3b2f9cf2e2d62c1',
-    password: 'f49decea58e1cd8f1dd10e168fc74631c980450f',
-    allowFail: false,
+    endpoint: 'https://xapi.learninglocker.experimental.slidewiki.org/data/xAPI',
+    username: '7317904fa8b6f7e93d1c59874e47c84001994304',
+    password: '26921b133273173c141abf14a4ac8087ee481115',
+    allowFail: true,
   },
 
 };

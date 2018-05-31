@@ -5,7 +5,7 @@ const lrsService = require('../services/lrs');
 const self = module.exports = {
 
   processActivity: function(request, reply) {
-    request.log('started', request.payload);
+    request.log('lrs', request.payload);
 
     // it's an array
     let activities = request.payload;
@@ -20,10 +20,10 @@ const self = module.exports = {
 
     }, Promise.resolve())
       .then((res) => {
-        request.log('finished', res);
+        request.log('lrs_finished', res.id);
       })
       .catch((err) => {
-        request.log('error', err);
+        request.log('lrs_error', err);
       });
 
     // reply immediately, don't let the request to lrs delay this one

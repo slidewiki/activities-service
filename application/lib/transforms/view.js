@@ -5,14 +5,12 @@ const boom = require('boom');
 const TinCan = require('tincanjs');
 const Microservices = require('../../configs/microservices');
 
+//var like = require('like')
+
 const self = module.exports = {
 
   transform: function(activity) {
-    // TODO support more reaction types ?
-    // console.log('react.activity.react_type='+activity.react_type);
-    if (activity.react_type !== 'like') {
-      throw boom.badData(`Unsupported reaction type: ${activity.react_type}`);
-    }
+    let lang = activity.content.language.replace(/_/g, '-');
 
     //let userId = activity.userId;
     //console.log('xApi.userId='+userId);
@@ -20,38 +18,36 @@ const self = module.exports = {
     let statement = new TinCan.Statement({
 
       verb: {
-        id: 'https://w3id.org/xapi/acrossx/verbs/liked',
+        id: 'http://adlnet.gov/expapi/verbs/experienced',
         display: {
-          en: 'liked',
+          en: 'experienced',
         },
       },
 
       actor: {
         objectType: 'Agent',
-        name: activity.user.username,
-        // TODO figure out how to provide authorization from platform to here
-        // in order to be able to receive sensitive data ?
+        // name: activity.user.username,
 
         // TODO Investigate how LRS can manage anonymous data (unregistered users)
 
-        // TODO Support more data for LRS to link to account in LRS (after integration)
-
         // mbox: `mailto:${activity.user.email}`,
-        // mbox_sha1sum: SHA1 checksum of user email address
+        // mbox_sha1sum: activity.user.mbox_sha1,
+
         account: {
-          name: activity.user.username,
-          homePage : `${Microservices.platform.uri}/user/${activity.user.username}`
-        }
+          homePage : Microservices.platform.uri,
+          name: String(activity.user.id),
+        },
+
       },
 
       object: {
         id: `${Microservices.platform.uri}/${activity.content_kind}/${activity.content_id}`,
         definition: {
           name: {
-            en: activity.content.title,
+            [lang]: activity.content.title,
           },
           description: {
-            en: activity.content.description,
+            [lang]: activity.content.description || undefined,
           },
         },
       },
