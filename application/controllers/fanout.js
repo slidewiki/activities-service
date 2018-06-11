@@ -5,6 +5,10 @@ const lrsService = require('../services/lrs');
 const self = module.exports = {
 
   processActivity: function(request, reply) {
+    if (!lrsService.isAvailable()) {
+      return reply();
+    }
+
     request.log('lrs', request.payload);
 
     // it's an array

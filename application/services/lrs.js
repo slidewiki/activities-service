@@ -5,7 +5,15 @@ const transforms = require('../lib/transforms');
 
 const self = module.exports = {
 
+  isAvailable: function() {
+    return getLRS() !== null;
+  },
+
   saveActivity: function(activity, credentials) {
+    if (!self.isAvailable()) {
+      throw new Error('LRS connection is not available');
+    }
+
     return transforms.transform(activity, credentials).then((statement) => {
       // console.log(statement);
 
@@ -49,16 +57,17 @@ const self = module.exports = {
 const TinCan = require('tincanjs');
 
 let lrs;
-function getLRS() {
+function getLRS(force) {
+  // return already instantiaded lrs
   if (lrs) return lrs;
+  // if we return null means we service is not available, use force=true to retry
+  if (lrs === null && !force) return null;
 
   try {
     lrs = new TinCan.LRS(lrsOptions);
   } catch (err) {
-    // TODO log or throw ?
-    console.log(`connection to the LRS is currently unavailable: ${err}`);
-
-    throw new Error(`connection to the LRS is currently unavailable: ${err}`);
+    lrs = null;
+    console.warn('Error establishing connection to LRS', err);
   }
 
   return lrs;
