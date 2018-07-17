@@ -511,7 +511,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
               //get title from result
               let contentRevision = (contentRevisionId !== undefined) ? parsed.revisions.find((revision) =>  String(revision.id) ===  String(contentRevisionId)) : undefined;
               if (contentRevision !== undefined) {
-                if (ownerId === undefined) {
+                if (ownerId === undefined || ownerId === null || ownerId <= 0) {
                   ownerId = contentRevision.user;
                 }
                 if (title === undefined || title === null) {
@@ -533,7 +533,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
                 }
               }
             }
-            if (ownerId === undefined && parsed.user) {
+            if ((ownerId === undefined || ownerId === null ||ownerId <= 0) && parsed.user) {
               ownerId = parsed.user;
             }
           } catch(e) {
