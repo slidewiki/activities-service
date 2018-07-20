@@ -383,9 +383,11 @@ function insertAuthor(activity) {
     } else {
       rp.get({uri: Microservices.user.uri + '/user/' + activity.user_id}).then((res) => {
         let username = '';
+        let displayName = undefined;
         try {
           let parsed = JSON.parse(res);
           username = parsed.username;
+          displayName = parsed.displayName;
         } catch(e) {
           console.log(e);
           activity.author = {
@@ -397,7 +399,8 @@ function insertAuthor(activity) {
 
         activity.author = {
           id: activity.user_id,
-          username: username
+          username: username,
+          displayName: displayName
         };
         resolve(activity);
 
@@ -446,11 +449,13 @@ function insertAuthors(activities) {
           userDataArray.forEach((userData) => {
             let userId = userData._id;
             let username = userData.username;
+            let displayName = userData.displayName;
             activities.forEach((activity) => {
               if (parseInt(activity.user_id) === userId) {
                 activity.author = {
                   id: activity.user_id,
-                  username: username
+                  username: username,
+                  displayName: displayName
                 };
               }
             });
