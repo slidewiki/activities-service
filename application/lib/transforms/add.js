@@ -1,38 +1,19 @@
 'use strict';
 
 const TinCan = require('tincanjs');
-const Microservices = require('../../configs/microservices');
+const transformUtil = require('./transformUtil');
 
-const xapi = require('../xapiUtil');
+module.exports = {
 
-const self = module.exports = {
-
-  transform: function(activity) {
-    let statement = new TinCan.Statement({
-
-      verb: {
-        id: 'http://activitystrea.ms/schema/1.0/create',
-        display: {
-          en: 'created',
-        },
+  transform: function (activity) {
+    let statementCfg = transformUtil.prepareStatement(activity);
+    statementCfg.verb = {
+      id: 'http://activitystrea.ms/schema/1.0/create',
+      display: {
+        en: 'created',
       },
-
-      actor: xapi.actor(activity.user),
-
-      object: {
-        id: `${Microservices.platform.uri}/${activity.content_kind}/${activity.content_id}`,
-        definition: {
-          name: {
-            en: activity.content.title,
-          },
-          description: {
-            en: activity.content.description || undefined,
-          },
-        },
-      },
-
-    });
-
+    };
+    let statement = new TinCan.Statement(statementCfg);
     return statement;
   },
 
