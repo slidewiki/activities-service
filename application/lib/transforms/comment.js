@@ -1,11 +1,11 @@
 'use strict';
 
 const TinCan = require('tincanjs');
-const transformUtil = require('./transformUtil');
+const xapi = require('../xapiUtil');
 
 module.exports = {
   transform: function (activity) {
-    let statementCfg = transformUtil.prepareStatement(activity);
+    let statementCfg = xapi.prepareStatement(activity);
     statementCfg.verb = {
       id: 'http://adlnet.gov/expapi/verbs/commented',
       display: {

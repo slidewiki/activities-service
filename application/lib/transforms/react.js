@@ -3,7 +3,7 @@
 const boom = require('boom');
 
 const TinCan = require('tincanjs');
-const transformUtil = require('./transformUtil');
+const xapi = require('../xapiUtil');
 
 module.exports = {
 
@@ -13,7 +13,7 @@ module.exports = {
       throw boom.badData(`Unsupported reaction type: ${activity.react_type}`);
     }
 
-    let statementCfg = transformUtil.prepareStatement(activity);
+    let statementCfg = xapi.prepareStatement(activity);
 
     statementCfg.verb = {
       id: 'https://w3id.org/xapi/acrossx/verbs/liked',
