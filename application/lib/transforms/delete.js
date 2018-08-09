@@ -5,9 +5,10 @@ const Microservices = require('../../configs/microservices');
 
 const xapi = require('../xapiUtil');
 
-const self = module.exports = {
+module.exports = {
 
-  transform: function(activity) {
+  transform: function (activity) {
+    console.log(JSON.stringify(activity));
     let deleted = activity.delete_info;
     let platformPath = deleted.content_kind === 'deck' ? 'deck' : 'slideview';
 
@@ -31,9 +32,10 @@ const self = module.exports = {
           description: {
             en: deleted.content_name,
           },
+          type: deleted.content_kind === 'deck' ? 'http://id.tincanapi.com/activitytype/slide-deck' : 'http://id.tincanapi.com/activitytype/slide',
         },
       },
-
+      context: xapi.context(activity),
     });
 
     return statement;

@@ -2,7 +2,16 @@
 
 const Microservices = require('../configs/microservices');
 
-module.exports = {
+const self = module.exports = {
+
+  prepareStatement: function (activity) {
+    let statementCfg = {
+      actor: self.actor(activity.user),
+      object: self.object(activity),
+      context: self.context(activity)
+    };
+    return statementCfg;
+  },
 
   actor: function(user) {
     return {
@@ -19,6 +28,45 @@ module.exports = {
       },
 
     };
+  },
+
+  object: function (activity) {
+    return {
+      id: `${Microservices.platform.uri}/${activity.content_kind}/${activity.content_id}`,
+      definition: {
+        name: {
+          en: activity.content.title,
+        },
+        description: {
+          en: activity.content.description || undefined,
+        },
+        type: activity.content_kind === 'deck' ? 'http://id.tincanapi.com/activitytype/slide-deck' : 'http://id.tincanapi.com/activitytype/slide',
+      },
+    };
+  },
+
+  context: function(activity) {
+    let context = {
+      language: activity.content.language,
+    };
+
+    let tags = activity.content.tags;
+    if (tags && tags.length > 0) {
+      let categories = tags.map((tag) => {
+        return {
+          id: `${Microservices.platform.uri}/deckfamily/${tag.tagName}`,
+          objectType: 'Activity',
+          definition: {
+            name: {
+              en: tag.defaultName
+            },
+            type: 'http://id.tincanapi.com/activitytype/tag',
+          },
+        };
+      });
+      context.contextActivities = {category: categories};
+    }
+    return context;
   },
 
 };
