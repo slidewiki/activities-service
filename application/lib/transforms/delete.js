@@ -8,7 +8,6 @@ const xapi = require('../xapiUtil');
 module.exports = {
 
   transform: function (activity) {
-    console.log(JSON.stringify(activity));
     let deleted = activity.delete_info;
     let platformPath = deleted.content_kind === 'deck' ? 'deck' : 'slideview';
 
