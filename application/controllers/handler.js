@@ -101,10 +101,10 @@ let self = module.exports = {
                   }
 
                   decks.forEach((deck) => {
-                    deckIdArray.push(deck.id);
+                    deckIdArray.push(String(deck.id));
                   });
                   playlists.forEach((playlist) => {
-                    playlistIdArray.push(playlist._id);
+                    playlistIdArray.push(String(playlist._id));
                   });
                   return followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]).then((followings) => {
                     followings.forEach((following) => {
@@ -205,10 +205,10 @@ let self = module.exports = {
                     deckIdArray.push(activities[j].content_id.split('-')[0]);
                   }
                   for (let k = 0; k < currentDecks.length; k++) {
-                    deckIdArray.push(currentDecks[k].id);
+                    deckIdArray.push(String(currentDecks[k].id));
                   }
                   for (let k = 0; k < currentPlaylists.length; k++) {
-                    playlistIdArray.push(currentPlaylists[k]._id);
+                    playlistIdArray.push(String(currentPlaylists[k]._id));
                   }
 
                   followingsPromises.push(followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]));
