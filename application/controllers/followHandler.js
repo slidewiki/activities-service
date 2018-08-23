@@ -36,9 +36,28 @@ module.exports = {
     });
   },
 
-  //Get All Followings from database for the type and id in the request
+  //Get All Followings from database for the followed_type and followed_id in the request
   getFollowings: function(request, reply) {
-    return followingsDB.getFollowings(request.params.type, request.params.id).then((followings) => {
+    return followingsDB.getFollowings(undefined, request.params.followed_type, request.params.followed_id).then((followings) => {
+      followings.forEach((following) => {
+        co.rewriteID(following);
+      });
+
+      let jsonReply = JSON.stringify(followings);
+      reply(jsonReply);
+    }).catch((error) => {
+      request.log('error', error);
+      reply(boom.badImplementation());
+    });
+  },
+
+  //Get All Followings from database for the user_id in the request
+  getFollowingsForFollower: function(request, reply) {
+    const user_id = request.params.user_id;
+    const followed_type = request.query.followed_type;
+    const followed_id = request.query.followed_id;
+
+    return followingsDB.getFollowings(user_id, followed_type, followed_id).then((followings) => {
       followings.forEach((following) => {
         co.rewriteID(following);
       });

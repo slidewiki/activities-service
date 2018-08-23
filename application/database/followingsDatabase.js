@@ -18,10 +18,54 @@ module.exports = {
       }));
   },
 
-  getFollowings: function(type, identifier) {
+  getFollowings: function(user_id,  followed_type, followed_id) {
+    let queryArray = [];
+    if (user_id !== undefined) {
+      queryArray.push({user_id: user_id});
+    }if (followed_type !== undefined) {
+      queryArray.push({followed_type: followed_type });
+    }
+    if (followed_id !== undefined) {
+      queryArray.push({followed_id: followed_id });
+    }
+
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({followed_type: type, followed_id: identifier }))
+      .then((col) => col.find({$and: queryArray}))
+      .then((stream) => stream.toArray());
+  },
+
+  getFollowingsForDeckAndPlaylistArrays(deckIdArray, playlistIdArray) {
+    if (deckIdArray.length === 0 && playlistIdArray.length === 0) {
+      return new Promise((resolve) => {
+        resolve([]);
+      });
+    }
+    const deckTypeQuery = {$and: [{followed_type: 'deck'}, { followed_id: { $in: deckIdArray } }]};
+    const playlistTypeQuery = {$and: [{followed_type: 'playlist'}, { followed_id: { $in: playlistIdArray } }]};
+
+    let query = {$or: [deckTypeQuery, playlistTypeQuery]};
+
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.find(query))
+      .then((stream) => stream.toArray());
+  },
+
+  getFollowingsForTypesAndIds(typeArray, idsArrayOfArrays) {
+    if (typeArray.length === 0 || idsArrayOfArrays.length === 0) {
+      return new Promise((resolve) => {
+        resolve([]);
+      });
+    }
+    let queryArray = [];
+    for (let i = 0; i < typeArray.length; i++) {
+      queryArray.push({$and: [{followed_type: typeArray[i]}, { followed_id: { $in: idsArrayOfArrays[i] } }]});
+    }
+
+    return helper.connectToDatabase()
+      .then((db) => db.collection(collectionName))
+      .then((col) => col.find({$or: queryArray}))
       .then((stream) => stream.toArray());
   },
 

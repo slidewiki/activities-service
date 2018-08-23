@@ -228,17 +228,37 @@ module.exports = function(server) {
   //Get followings for a type (deck, playlist, user) and id
   server.route({
     method: 'GET',
-    path: '/followings/{type}/{id}',
+    path: '/followings/{followed_type}/{followed_id}',
     handler: followHandlers.getFollowings,
     config: {
       validate: {
         params: {
-          type: Joi.string().valid('deck', 'slide', 'playlist', 'user'),
-          id: Joi.string().description('The id of the deck/slide/playlist/user')
+          followed_type: Joi.string().valid('deck', 'slide', 'playlist', 'user'),
+          followed_id: Joi.string().description('The id of the deck/slide/playlist/user')
         }
       },
       tags: ['api'],
       description: 'Get a list of followings'
+    }
+  });
+
+  //Get followings for a user
+  server.route({
+    method: 'GET',
+    path: '/followings/follower/{user_id}',
+    handler: followHandlers.getFollowingsForFollower,
+    config: {
+      validate: {
+        params: {
+          user_id: Joi.string().description('The id of the follower - user')
+        },
+        query: {
+          followed_type: Joi.string().description('Type of the following - "deck", "playlist", ...'),
+          followed_id: Joi.string().description('Id of the following - deck_id, playlist_id, ...')
+        }
+      },
+      tags: ['api'],
+      description: 'Get a list of followings for a user (follower)'
     }
   });
 
