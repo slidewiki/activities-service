@@ -7,36 +7,45 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
   activitiesDB = require('../database/activitiesDatabase'), //Database functions specific for activities
+  followingsDB = require('../database/followingsDatabase'), //Database functions specific for activities
+  //followHandlers = require('./followHandlers'),
   co = require('../common');
 
 const Microservices = require('../configs/microservices');
 let rp = require('request-promise-native');
 
 //Send request to insert new notification
-function createNotification(activity, subscribed_user_id) {
+function createNotifications(notificationDataArray) {
   //TODO find list of subscribed users
   // if (activity.content_id.split('-')[0] === '8') {//current dummy user is subscribed to this content_id
+  if (notificationDataArray === undefined || notificationDataArray.length === 0) {
+    return;
+  }
+  let notifications = [];
+  notificationDataArray.forEach((notificationData) => {
+    let activity = notificationData.activity;
+    let notification = {
+      activity_type: activity.activity_type,
+      user_id: activity.user_id,
+      content_id: activity.content_id,
+      content_kind: activity.content_kind,
+      content_name: activity.content_name,
+      content_owner_id: activity.content_owner_id,
+      translation_info: activity.translation_info,
+      share_info: activity.share_info,
+      comment_info: activity.comment_info,
+      use_info: activity.use_info,
+      react_type: activity.react_type,
+      rate_type:  activity.rate_type,
+      subscribed_user_ids: notificationData.subscribed_user_ids,
+      activity_id: activity.id
+    };
+    notifications.push(notification);
+  });
 
-  let notification = {
-    activity_type: activity.activity_type,
-    user_id: activity.user_id,
-    content_id: activity.content_id,
-    content_kind: activity.content_kind,
-    content_name: activity.content_name,
-    content_owner_id: activity.content_owner_id,
-    translation_info: activity.translation_info,
-    share_info: activity.share_info,
-    comment_info: activity.comment_info,
-    use_info: activity.use_info,
-    react_type: activity.react_type,
-    rate_type:  activity.rate_type,
-    subscribed_user_id: subscribed_user_id,
-    activity_id: activity.id
-  };
+  let data = JSON.stringify(notifications);
 
-  let data = JSON.stringify(notification);
-
-  rp.post({uri: Microservices.notification.uri + '/notification/new', body:data})
+  rp.post({uri: Microservices.notification.uri + '/notifications/new', body:data})
     .catch((e) => {
       console.log('problem with createNotification: ' + e);
     });
@@ -64,19 +73,75 @@ let self = module.exports = {
             return insertAuthor(inserted.ops[0]).then((activity) => {
               const activity_types_for_notifications = ['translate', 'share', 'add', 'edit', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'fork', 'delete', 'joined', 'left'];
               activity = co.rewriteID(activity);
-              if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
-                createNotification(activity, activity.content_owner_id);
-              }
 
-              if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
-                //find the parent comment owner and create notification
-                const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
-
-                if (activity.user_id !== parentCommentOwnerId) {
-                  createNotification(activity, parentCommentOwnerId);
+              if (activity_types_for_notifications.includes(activity.activity_type)) {//Create notifications
+                let arrayOfUsersToNotify = [];
+                if (activity.content_owner_id && activity.user_id !== activity.content_owner_id) {// notify owner if it wasn't him/her that created the activity
+                  arrayOfUsersToNotify.push(activity.content_owner_id);
                 }
+
+                if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
+                  //find the parent comment owner and create notification
+                  const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
+
+                  if (activity.user_id !== parentCommentOwnerId && activity.content_owner_id !== parentCommentOwnerId) {
+                    arrayOfUsersToNotify.push(parentCommentOwnerId);
+                  }
+                }
+
+                return getDeepUsage(activity.content_kind, activity.content_id).then((decks) => {
+                  let deckIdArray = [];
+                  let playlistsPromises = [];
+                  if (activity.content_kind === 'deck') {
+                    deckIdArray.push(activity.content_id.split('-')[0]);
+                    playlistsPromises.push(getPlaylists(activity.content_id.split('-')[0]));
+                  }
+                  decks.forEach((deck) => {
+                    if (!deckIdArray.includes(String(deck.id))) {
+                      deckIdArray.push(String(deck.id));
+                      playlistsPromises.push(getPlaylists(String(deck.id)));
+                    }
+                  });
+
+                  return Promise.all(playlistsPromises).then((playlistsResultArray) => {
+                    let playlistIdArray = [];
+                    playlistsResultArray.forEach((playlists) => {
+                      playlists.forEach((playlist) => {
+                        if (!playlistIdArray.includes(String(playlist._id))) {
+                          playlistIdArray.push(String(playlist._id));
+                        }
+                      });
+                    });
+
+                    return followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]).then((followings) => {
+                      followings.forEach((following) => {
+                        co.rewriteID(following);
+                        if (!arrayOfUsersToNotify.includes(following.user_id) && activity.user_id !== following.user_id) {
+                          arrayOfUsersToNotify.push(following.user_id);
+                        }
+                      });
+
+                      if (arrayOfUsersToNotify.length > 0) {
+                        let notificationsDataArray = [{activity: activity, subscribed_user_ids: arrayOfUsersToNotify}];
+                        createNotifications(notificationsDataArray);
+                      }
+
+                      reply(activity);
+                    }).catch((error) => {
+                      tryRequestLog(request, 'error', error);
+                      reply(boom.badImplementation());
+                    });
+                  }).catch((error) => {
+                    tryRequestLog(request, 'error', error);
+                    reply(boom.badImplementation());
+                  });
+                }).catch((error) => {
+                  tryRequestLog(request, 'error', error);
+                  reply(boom.badImplementation());
+                });
+              } else {
+                reply(activity);
               }
-              reply(activity);
             }).catch((error) => {
               tryRequestLog(request, 'error', error);
               reply(boom.badImplementation());
@@ -122,18 +187,72 @@ let self = module.exports = {
             const activity_types_for_notifications = ['translate', 'share', 'add', 'edit', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'fork', 'delete', 'joined', 'left'];
             return insertAuthors(inserted.ops).then((activities) => {
               activities.forEach((activity) => {
+
                 activity = co.rewriteID(activity);
-                if (activity.content_owner_id && activity.user_id !== activity.content_owner_id && activity_types_for_notifications.includes(activity.activity_type)) {// notify user if it wasn't him/her that created the activity
-                  createNotification(activity, activity.content_owner_id);
-                }
-
-                if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
-                  //find the parent comment owner and create notification
-                  const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
-
-                  if (activity.user_id !== parentCommentOwnerId) {
-                    createNotification(activity, parentCommentOwnerId);
+                if (activity_types_for_notifications.includes(activity.activity_type)) {//Create notifications
+                  let arrayOfUsersToNotify = [];
+                  if (activity.content_owner_id && activity.user_id !== activity.content_owner_id) {// notify owner if it wasn't him/her that created the activity
+                    arrayOfUsersToNotify.push(activity.content_owner_id);
                   }
+
+                  if (activity.activity_type === 'reply' && activity.user_id !== activity.comment_info.parent_comment_owner_id) {
+                    //find the parent comment owner and create notification
+                    const parentCommentOwnerId = activity.comment_info.parent_comment_owner_id;
+
+                    if (activity.user_id !== parentCommentOwnerId && activity.content_owner_id !== parentCommentOwnerId) {
+                      arrayOfUsersToNotify.push(parentCommentOwnerId);
+                    }
+                  }
+
+                  return getDeepUsage(activity.content_kind, activity.content_id).then((decks) => {
+                    let deckIdArray = [];
+                    let playlistsPromises = [];
+                    if (activity.content_kind === 'deck') {
+                      deckIdArray.push(activity.content_id.split('-')[0]);
+                      playlistsPromises.push(getPlaylists(activity.content_id));
+                    }
+                    decks.forEach((deck) => {
+                      if (!deckIdArray.includes(String(deck.id))) {
+                        deckIdArray.push(String(deck.id));
+                        playlistsPromises.push(getPlaylists(String(deck.id)));
+                      }
+                    });
+
+                    return Promise.all(playlistsPromises).then((playlistsResultArray) => {
+                      let playlistIdArray = [];
+                      playlistsResultArray.forEach((playlists) => {
+                        playlists.forEach((playlist) => {
+                          if (!playlistIdArray.includes(String(playlist._id))) {
+                            playlistIdArray.push(String(playlist._id));
+                          }
+                        });
+                      });
+
+                      return followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]).then((followings) => {
+                        followings.forEach((following) => {
+                          co.rewriteID(following);
+                          if (!arrayOfUsersToNotify.includes(following.user_id) && activity.user_id !== following.user_id) {
+                            arrayOfUsersToNotify.push(following.user_id);
+                          }
+                        });
+
+                        if (arrayOfUsersToNotify.length > 0) {
+                          let notificationsDataArray = [{activity: activity, subscribed_user_ids: arrayOfUsersToNotify}];
+                          createNotifications(notificationsDataArray);
+                        }
+
+                      }).catch((error) => {
+                        tryRequestLog(request, 'error', error);
+                        reply(boom.badImplementation());
+                      });
+                    }).catch((error) => {
+                      tryRequestLog(request, 'error', error);
+                      reply(boom.badImplementation());
+                    });
+                  }).catch((error) => {
+                    tryRequestLog(request, 'error', error);
+                    reply(boom.badImplementation());
+                  });
                 }
               });
               reply(activities);
@@ -191,7 +310,7 @@ let self = module.exports = {
 
       const metaonly = request.query.metaonly;
       const activity_type = request.query.activity_type;
-      const include_subdecks_and_slides = request.query.include_subdecks_and_slides;//TODO use this and refactor
+      // const include_subdecks_and_slides = request.query.include_subdecks_and_slides;//TODO use this and refactor
       let activityTypeArray = activity_type;
       if (activity_type !== undefined) {
         activityTypeArray = (activity_type.constructor !== Array) ? [activity_type] : activity_type;
@@ -320,7 +439,7 @@ let self = module.exports = {
 };
 
 function getSubdecksAndSlides(content_kind, id) {
-  let myPromise = new Promise((resolve, reject) => {
+  let myPromise = new Promise((resolve) => {
     if (content_kind !== 'deck') {
       resolve([{
         type: content_kind,
@@ -365,7 +484,7 @@ function getArrayOfChildren(node) {//recursive
 
 //insert author data using user microservice
 function insertAuthor(activity) {
-  let myPromise = new Promise((resolve, reject) => {
+  let myPromise = new Promise((resolve) => {
 
     if (activity.user_id === '0') {
       activity.author = {
@@ -420,7 +539,7 @@ function insertAuthor(activity) {
 
 //insert author data to an array of activities using user microservice
 function insertAuthors(activities) {
-  let myPromise = new Promise((resolve, reject) => {
+  let myPromise = new Promise((resolve) => {
 
     //Create array of user ids
     let arrayOfUserIds = [];
@@ -500,7 +619,7 @@ function insertAuthors(activities) {
 
 //find content title and ownerId using deck microservice
 function findContentTitleAndOwnerIfNeeded(activity) {
-  let myPromise = new Promise((resolve, reject) => {
+  let myPromise = new Promise((resolve) => {
     if (activity.content_kind === 'slide' || activity.content_kind === 'deck' ) {
       let title = activity.content_name;
       let ownerId = activity.content_owner_id;
@@ -560,6 +679,31 @@ function findContentTitleAndOwnerIfNeeded(activity) {
   });
 
   return myPromise;
+}
+
+function getDeepUsage(content_kind, id) {
+  let myPromise = new Promise((resolve) => {
+
+    rp.get({uri: Microservices.deck.uri + '/' + content_kind + '/' + id + '/deepusage'}).then((res) => {
+      resolve(JSON.parse(res));
+    }).catch((err) => {
+      console.log('Error', err);
+      resolve([]);
+    });
+  });
+
+  return myPromise;
+}
+
+function getPlaylists(deckId) {
+  return new Promise((resolve) => {
+    rp.get({uri: Microservices.deck.uri + '/deck/' + deckId + '/groups'}).then((res) => {
+      resolve(JSON.parse(res));
+    }).catch((err) => {
+      console.log('Error', err);
+      resolve([]);
+    });
+  });
 }
 
 //This function tries to use request log and uses console.log if this doesnt work - this is the case in unit tests

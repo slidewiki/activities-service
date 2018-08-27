@@ -5,7 +5,8 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 'use strict';
 
 const Joi = require('joi'),
-  handlers = require('./controllers/handler');
+  handlers = require('./controllers/handler'),
+  followHandlers = require('./controllers/followHandler');
 
 const fanout = require('./controllers/fanout');
 
@@ -221,6 +222,84 @@ module.exports = function(server) {
       },
       tags: ['api'],
       description: 'Delete all activities for the specified content, type, user'
+    }
+  });
+
+  //Get followings for a type (deck, playlist, user) and id
+  server.route({
+    method: 'GET',
+    path: '/followings/{followed_type}/{followed_id}',
+    handler: followHandlers.getFollowings,
+    config: {
+      validate: {
+        params: {
+          followed_type: Joi.string().valid('deck', 'slide', 'playlist', 'user'),
+          followed_id: Joi.string().description('The id of the deck/slide/playlist/user')
+        }
+      },
+      tags: ['api'],
+      description: 'Get a list of followings'
+    }
+  });
+
+  //Get followings for a user
+  server.route({
+    method: 'GET',
+    path: '/followings/follower/{user_id}',
+    handler: followHandlers.getFollowingsForFollower,
+    config: {
+      validate: {
+        params: {
+          user_id: Joi.string().description('The id of the follower - user')
+        },
+        query: {
+          followed_type: Joi.string().description('Type of the following - "deck", "playlist", ...'),
+          followed_id: Joi.string().description('Id of the following - deck_id, playlist_id, ...')
+        }
+      },
+      tags: ['api'],
+      description: 'Get a list of followings for a user (follower)'
+    }
+  });
+
+  //Create new following (by payload) and return it (...). Validate payload
+  server.route({
+    method: 'POST',
+    path: '/followings/new',
+    handler: followHandlers.newFollowing,
+    config: {
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
+      validate: {
+        payload: Joi.object().keys({
+          user_id: Joi.string(),
+          followed_type: Joi.string(),
+          followed_id: Joi.string(),
+        }).requiredKeys('user_id', 'followed_type', 'followed_id'),
+        headers: Joi.object({
+          '----jwt----': Joi.string().description('JWT header provided by /login')
+        }).unknown(),
+      },
+      tags: ['api'],
+      description: 'Create a new following'
+    }
+  });
+
+  //Delete following with id id (by payload). Validate payload
+  server.route({
+    method: 'DELETE',
+    path: '/followings/delete',
+    handler: followHandlers.deleteFollowing,
+    config: {
+      validate: {
+        payload: {
+          id: Joi.string()
+        },
+      },
+      tags: ['api'],
+      description: 'Delete a following'
     }
   });
 };
