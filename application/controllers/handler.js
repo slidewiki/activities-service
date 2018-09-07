@@ -115,7 +115,6 @@ let self = module.exports = {
 
                     return followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]).then((followings) => {
                       followings.forEach((following) => {
-                        co.rewriteID(following);
                         if (!arrayOfUsersToNotify.includes(following.user_id) && activity.user_id !== following.user_id) {
                           arrayOfUsersToNotify.push(following.user_id);
                         }
@@ -230,7 +229,6 @@ let self = module.exports = {
 
                       return followingsDB.getFollowingsForTypesAndIds(['deck', 'playlist'], [deckIdArray, playlistIdArray]).then((followings) => {
                         followings.forEach((following) => {
-                          co.rewriteID(following);
                           if (!arrayOfUsersToNotify.includes(following.user_id) && activity.user_id !== following.user_id) {
                             arrayOfUsersToNotify.push(following.user_id);
                           }
@@ -684,7 +682,7 @@ function findContentTitleAndOwnerIfNeeded(activity) {
 function getDeepUsage(content_kind, id) {
   let myPromise = new Promise((resolve) => {
 
-    rp.get({uri: Microservices.deck.uri + '/' + content_kind + '/' + id + '/deepusage'}).then((res) => {
+    rp.get({uri: Microservices.deck.uri + '/' + content_kind + '/' + id + '/deepUsage'}).then((res) => {
       resolve(JSON.parse(res));
     }).catch((err) => {
       console.log('Error', err);
