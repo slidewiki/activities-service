@@ -110,7 +110,7 @@ const activity = {
       },
       related_prediction_activity_id: {
         type: 'string'
-      }
+      },
       result: {
         type: 'string'
       },
