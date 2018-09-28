@@ -110,6 +110,13 @@ module.exports = function(server) {
             source_id: Joi.string(),
             target_id: Joi.string()
           }),
+          prediction_info: Joi.object().keys({
+            prediction_activity_type: Joi.string(),
+            result: Joi.string(),
+            accuracy: Joi.string(),
+            no_of_users: Joi.string(),
+            no_of_decks: Joi.string()
+          }),
           react_type: Joi.string(),
           rate_type: Joi.string()
         }).requiredKeys('content_id', 'user_id', 'activity_type'),
@@ -175,6 +182,13 @@ module.exports = function(server) {
             move_info: Joi.object().keys({
               source_id: Joi.string(),
               target_id: Joi.string()
+            }),
+            prediction_info: Joi.object().keys({
+              prediction_activity_type: Joi.string(),
+              result: Joi.string(),
+              accuracy: Joi.string(),
+              no_of_users: Joi.string(),
+              no_of_decks: Joi.string()
             }),
             react_type: Joi.string(),
             rate_type: Joi.string()

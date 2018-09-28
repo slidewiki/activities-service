@@ -19,7 +19,7 @@ const activity = {
   properties: {
     activity_type: {
       type: 'string',
-      enum: ['translate', 'share', 'add', 'edit', 'view', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'exam', 'fork', 'delete', 'joined', 'left']
+      enum: ['translate', 'share', 'add', 'edit', 'view', 'move', 'comment', 'reply', 'use', 'attach', 'react', 'rate', 'download', 'exam', 'fork', 'delete', 'joined', 'left', 'prediction']
     },
     timestamp: {
       type: 'object'
@@ -102,6 +102,24 @@ const activity = {
       target_id: {
         type: 'string'
       }
+    },
+    prediction_info: {
+      prediction_activity_type: {
+        type: 'string',
+        enum: ['start', 'end', 'delete']
+      },
+      result: {
+        type: 'string'
+      },
+      accuracy: {
+        type: 'string'
+      },
+      no_of_users: {
+        type: 'string'
+      },
+      no_of_decks: {
+        type: 'string'
+      },
     }
   },
   required: ['content_id', 'user_id', 'activity_type']
