@@ -112,6 +112,7 @@ module.exports = function(server) {
           }),
           prediction_info: Joi.object().keys({
             prediction_activity_type: Joi.string(),
+            related_prediction_activity_id: Joi.string(),
             result: Joi.string(),
             accuracy: Joi.string(),
             no_of_users: Joi.string(),
@@ -185,6 +186,7 @@ module.exports = function(server) {
             }),
             prediction_info: Joi.object().keys({
               prediction_activity_type: Joi.string(),
+              related_prediction_activity_id: Joi.string(),
               result: Joi.string(),
               accuracy: Joi.string(),
               no_of_users: Joi.string(),

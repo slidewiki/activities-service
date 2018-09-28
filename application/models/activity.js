@@ -108,6 +108,9 @@ const activity = {
         type: 'string',
         enum: ['start', 'end', 'delete']
       },
+      related_prediction_activity_id: {
+        type: 'string'
+      }
       result: {
         type: 'string'
       },
