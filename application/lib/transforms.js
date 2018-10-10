@@ -1,7 +1,5 @@
 'use strict';
 
-const boom = require('boom');
-
 const deckService = require('../services/deck');
 const userService = require('../services/user');
 

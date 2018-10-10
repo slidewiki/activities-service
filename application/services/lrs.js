@@ -11,6 +11,67 @@ const self = module.exports = {
     return getLRS() !== null;
   },
 
+  saveActivities: async function(activities, ticker) {
+    if (!self.isAvailable()) {
+      throw new Error('LRS connection is not available');
+    }
+
+    let statements = [];
+    for (let activity of activities) {
+      ticker.tick();
+      try {
+        let statement = await transforms.transform(activity);
+        if (!statement) {
+          // TODO log warning
+          continue;
+        }
+        statements.push(statement);
+      } catch (err) {
+        try {
+          console.log(JSON.parse(err.message));
+          throw new Error('failed to save activity');
+        } catch (parseError) {
+          // means it's skippable (?)
+          if (!err.message.startsWith('could not find')) throw err;
+          // console.log(err);
+          // throw err;
+        }
+      }
+    }
+
+    if (!statements.length) return statements;
+
+    return new Promise((resolve, reject) => {
+      getLRS().saveStatements(statements, {
+        callback: (httpErrorCode, xhr) => {
+          if (httpErrorCode !== null) {
+            let errMessage;
+            if (xhr !== null) {
+              let details;
+              try {
+                details = JSON.parse(xhr.responseText);
+              } catch (err) {
+                // could not parse the details as JSON, will include the message as-is
+              }
+
+              errMessage = details && details.message || xhr.responseText;
+            } else {
+              // nothing more specific other than the error code
+              errMessage = `HTTP Error Code: ${httpErrorCode}`;
+            }
+
+            return reject(new Error(errMessage));
+          }
+
+          resolve(statements);
+        }
+
+      });
+
+    });
+
+  },
+
   saveActivity: function(activity, credentials) {
     if (!self.isAvailable()) {
       throw new Error('LRS connection is not available');

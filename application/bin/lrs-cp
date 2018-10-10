@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const ProgressBar = require('progress');
+
+const db = require('../database/helper');
+const lrsService = require('../services/lrs');
+
+async function lrsCopy() {
+  let batchSize = 50;
+
+  let query = {
+    user_id: { $nin: ['0', '-1'] },
+    activity_type: { $nin: ['joined', 'left'] },
+  };
+
+  let activities = await db.getCollection('activities');
+  let totalCount = await activities.count(query);
+
+  let currentOffset = 0;
+  let progressBar = new ProgressBar('copying :current out of :total activities (ETA: :eta sec) [:bar] :percent', { total: totalCount });
+
+  while (currentOffset < totalCount) {
+    let docs = await activities.find(query).sort({timestamp: 1}).skip(currentOffset).limit(batchSize).toArray();
+
+    await lrsService.saveActivities(docs, progressBar);
+
+    // for (let doc of docs) {
+    //   try {
+    //     await lrsService.saveActivity(doc);
+    //   } catch (err) {
+    //     try {
+    //         console.log(JSON.parse(err.message));
+    //         console.error(`stopped at ${progressBar.current}`);
+    //         throw new Error('failed to save activity');
+    //     } catch (parseError) {
+    //         // means it's skippable (?)
+    //         if (!err.message.startsWith('could not find')) throw err;
+    //         // console.log(err);
+    //     }
+    //   }
+    //   progressBar.tick();
+    // }
+
+    currentOffset += batchSize;
+  }
+}
+
+(async () => {
+  try {
+    if (!lrsService.isAvailable()) {
+      console.log('LRS is unavailable');
+      process.exit(-1);
+    }
+    await lrsCopy();
+
+    console.log('Initial index has been successfully completed');
+    process.exit(0);
+  } catch (err) {
+    console.log(err);
+    process.exit(-1);
+  }
+})();

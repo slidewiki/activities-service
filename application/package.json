@@ -12,7 +12,7 @@
   "main": "server.js",
   "scripts": {
     "clean": "rm -R ./node_modules/ ./coverage/",
-    "lint": "eslint -c .eslintrc \"./**/*.js\"",
+    "lint": "eslint -c .eslintrc \"./**/*.js\" bin/*",
     "test": "NODE_ENV=test mocha ./tests/*.js",
     "test:unit": "NODE_ENV=test mocha ./tests/unit_*.js",
     "test:integration": "NODE_ENV=test mocha ./tests/integration_*.js",
