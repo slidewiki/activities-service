@@ -27,6 +27,8 @@ const self = module.exports = {
         organization: u.organization
       }));
 
+    }).catch((err) => {
+      throw new Error(`could not read user(s) ${userIds.join(',')}`);
     });
 
   },

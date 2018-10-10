@@ -1,5 +1,7 @@
 'use strict';
 
+const boom = require('boom');
+
 const { LRS: lrsOptions } = require('../configuration');
 const transforms = require('../lib/transforms');
 
@@ -16,12 +18,15 @@ const self = module.exports = {
 
     return transforms.transform(activity, credentials).then((statement) => {
       // console.log(statement);
+      if (!statement) {
+        return Promise.reject(boom.badData(`could not create an lrs statement for activity: ${activity._id} of type: ${activity.activity_type}`));
+      }
 
       return new Promise((resolve, reject) => {
         getLRS().saveStatement(statement, {
           callback: (httpErrorCode, xhr) => {
             if (httpErrorCode !== null) {
-              let errMessage = [];
+              let errMessage = {};
               if (xhr !== null) {
                 let details;
                 try {
@@ -30,13 +35,13 @@ const self = module.exports = {
                   // could not parse the details as JSON, will include the message as-is
                 }
 
-                errMessage.push(details && details.message || xhr.responseText);
+                errMessage.message = details && details.message || xhr.responseText;
               } else {
                 // nothing more specific other than the error code
-                errMessage.push(`HTTP Error Code: ${httpErrorCode}`);
+                errMessage.message = `HTTP Error Code: ${httpErrorCode}`;
               }
-              errMessage.push(JSON.stringify({activity, statement}));
-              return reject(new Error(errMessage));
+              Object.assign(errMessage, {activity, statement});
+              return reject(new Error(JSON.stringify(errMessage)));
             }
 
             resolve(statement);

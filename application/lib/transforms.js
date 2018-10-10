@@ -10,12 +10,16 @@ const self = module.exports = {
   transform: function(activity, credentials) {
     // first verify we support the activity
     let doTransform = getTransform(activity.activity_type);
-    if (!doTransform) return Promise.reject(boom.badData(`Unsupported activity type: ${activity.activity_type}`));
+    if (!doTransform) return Promise.resolve();
 
     // all activities share some deck/user info
     // let's populate missing stuff here beforing getting deeper...
     return deckService.fetchContentItem(activity.content_kind, activity.content_id)
       .then((item) => {
+        if (!item) {
+          throw new Error(`could not find ${activity.content_kind} ${activity.content_id}`);
+        }
+
         activity.content = item;
 
         // TODO these should be removed after we have a sane deck/slide response model
@@ -38,6 +42,10 @@ const self = module.exports = {
         }
 
         return userService.fetchUserInfo([parseInt(activity.user_id)]).then((users) => {
+          if (!users.length) {
+            throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
+          }
+
           // just one user
           Object.assign(activity.user, users[0]);
           return doTransform(activity);
@@ -51,15 +59,23 @@ const self = module.exports = {
 
 // TODO support more activity types
 
-const transforms = {};
+const transforms = {
+  'add'     : require('./transforms/add'),
+  'comment' : require('./transforms/comment'),
+  'delete'  : require('./transforms/delete'),
+  'download': require('./transforms/download'),
+  'edit'    : require('./transforms/edit'),
+  'fork'    : require('./transforms/fork'),
+  'react'   : require('./transforms/react'),
+  'reply'   : require('./transforms/reply'),
+  'share'   : require('./transforms/share'),
+  'use'     : require('./transforms/use'),
+  'view'    : require('./transforms/view'),
+};
+
 function getTransform(activityType) {
-  let transform = transforms[activityType];
+  let {transform} = transforms[activityType];
   if (transform) return transform;
-
-  ({ transform } = require(`./transforms/${activityType}`));
-  transforms[activityType] = transform;
-
-  return transform;
 }
 
 

@@ -10,6 +10,11 @@ const self = module.exports = {
       object: self.object(activity),
       context: self.context(activity)
     };
+
+    if (activity.timestamp) {
+      statementCfg.timestamp = activity.timestamp;
+    }
+
     return statementCfg;
   },
 
