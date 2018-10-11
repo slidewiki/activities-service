@@ -40,7 +40,11 @@ const self = module.exports = {
         }
 
         // just one user
-        return userService.fetchUserInfo([parseInt(activity.user_id)]).then(([user]) => {
+        let userId = parseInt(activity.user_id);
+        if (!userId) {
+          throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
+        }
+        return userService.fetchUserInfo([userId]).then(([user]) => {
           if (!user || !user.username) {
             throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
           }
