@@ -24,36 +24,43 @@ async function lrsCopy() {
   while (currentOffset < totalCount) {
     let docs = await activities.find(query).skip(currentOffset).limit(batchSize).toArray();
 
-    try {
-      let statements = await lrsService.saveActivities(docs, progressBar);
-    } catch (saveErr) {
-      try {
-        // try to parse some JSON in string
-        let { warnings } = JSON.parse(saveErr.message);
-        let warnIds = warnings.map((w) => w.match(/statements\.([0-9]+)/)[1]).map((i) => docs[i]._id);
-        console.warn(`\ncould not save statements for activities ${warnIds}`);
-      } catch (parseError) {
-        // throw original, unknown error
-        throw saveErr;
-      }
-    }
-
-    // for (let doc of docs) {
+    // try {
+    //   let statements = await lrsService.saveActivities(docs, progressBar);
+    // } catch (saveErr) {
     //   try {
-    //     await lrsService.saveActivity(doc);
-    //   } catch (err) {
-    //     try {
-    //         console.log(JSON.parse(err.message));
-    //         console.error(`stopped at ${progressBar.current}`);
-    //         throw new Error('failed to save activity');
-    //     } catch (parseError) {
-    //         // means it's skippable (?)
-    //         if (!err.message.startsWith('could not find')) throw err;
-    //         // console.log(err);
-    //     }
+    //     // try to parse some JSON in string
+    //     let { warnings } = JSON.parse(saveErr.message);
+    //     let warnIds = warnings.map((w) => w.match(/statements\.([0-9]+)/)[1]).map((i) => docs[i]._id);
+    //     console.info(`could not save statements for activities ${warnIds}`);
+    //   } catch (parseError) {
+    //     // throw original, unknown error
+    //     throw saveErr;
     //   }
-    //   progressBar.tick();
     // }
+
+    for (let doc of docs) {
+      try {
+        await lrsService.saveActivity(doc);
+      } catch (saveErr) {
+        try {
+          // try to parse some JSON in string
+          let { statement } = JSON.parse(saveErr.message);
+          console.info(`failed to save activity ${doc._id}`);
+          console.info(statement);
+        } catch (parseError) {
+          // throw original, unknown error
+          if (saveErr.message.startsWith('could not find')) {
+            // it's something we can safely skip
+            console.info(`${saveErr.message}`);
+          } else {
+            // throw original, unknown error
+            console.info(`stopped at ${progressBar.curr}`);
+            throw saveErr;
+          }
+        }
+      }
+      progressBar.tick();
+    }
 
     currentOffset += batchSize;
   }
@@ -62,15 +69,13 @@ async function lrsCopy() {
 (async () => {
   try {
     if (!lrsService.isAvailable()) {
-      console.log('LRS is unavailable');
+      console.error('LRS is unavailable');
       process.exit(-1);
     }
     await lrsCopy();
-
-    console.log('Initial index has been successfully completed');
     process.exit(0);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     process.exit(-1);
   }
 })();

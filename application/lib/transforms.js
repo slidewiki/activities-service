@@ -15,7 +15,7 @@ const self = module.exports = {
     return deckService.fetchContentItem(activity.content_kind, activity.content_id)
       .then((item) => {
         if (!item) {
-          throw new Error(`could not find ${activity.content_kind} ${activity.content_id}`);
+          throw new Error(`could not find ${activity.content_kind} ${activity.content_id} for activity ${activity._id}`);
         }
 
         activity.content = item;
@@ -39,13 +39,13 @@ const self = module.exports = {
           });
         }
 
-        return userService.fetchUserInfo([parseInt(activity.user_id)]).then((users) => {
-          if (!users.length) {
+        // just one user
+        return userService.fetchUserInfo([parseInt(activity.user_id)]).then(([user]) => {
+          if (!user || !user.username) {
             throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
           }
 
-          // just one user
-          Object.assign(activity.user, users[0]);
+          Object.assign(activity.user, user);
           return doTransform(activity);
         });
 
