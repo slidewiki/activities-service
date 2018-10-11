@@ -12,7 +12,7 @@ async function lrsCopy() {
 
   let query = {
     user_id: { $nin: ['0', '-1'] },
-    activity_type: { $nin: ['joined', 'left'] },
+    activity_type: { $nin: ['joined', 'left', 'move', 'attach', null] },
   };
 
   let activities = await db.getCollection('activities');
