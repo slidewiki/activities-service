@@ -72,8 +72,8 @@ const transforms = {
 };
 
 function getTransform(activityType) {
-  let {transform} = transforms[activityType];
-  if (transform) return transform;
+  let transformer = transforms[activityType];
+  if (transformer) return transformer.transform;
 }
 
 
