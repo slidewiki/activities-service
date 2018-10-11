@@ -27,15 +27,8 @@ const self = module.exports = {
         }
         statements.push(statement);
       } catch (err) {
-        try {
-          console.log(JSON.parse(err.message));
-          throw new Error('failed to save activity');
-        } catch (parseError) {
-          // means it's skippable (?)
-          if (!err.message.startsWith('could not find')) throw err;
-          // console.log(err);
-          // throw err;
-        }
+        console.info(`failed to create statement for activity ${activity._id}`);
+        console.info(err.message);
       }
     }
 
@@ -45,7 +38,7 @@ const self = module.exports = {
       getLRS().saveStatements(statements, {
         callback: (httpErrorCode, xhr) => {
           if (httpErrorCode !== null) {
-            let errMessage;
+            let errMessage = {};
             if (xhr !== null) {
               let details;
               try {
@@ -54,13 +47,13 @@ const self = module.exports = {
                 // could not parse the details as JSON, will include the message as-is
               }
 
-              errMessage = details && details.message || xhr.responseText;
+              errMessage.message = details && details.message || xhr.responseText;
             } else {
               // nothing more specific other than the error code
-              errMessage = `HTTP Error Code: ${httpErrorCode}`;
+              errMessage.message = `HTTP Error Code: ${httpErrorCode}`;
             }
-
-            return reject(new Error(errMessage));
+            Object.assign(errMessage, { statements });
+            return reject(new Error(JSON.stringify(errMessage)));
           }
 
           resolve(statements);

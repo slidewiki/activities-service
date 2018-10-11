@@ -8,7 +8,7 @@ const db = require('../database/helper');
 const lrsService = require('../services/lrs');
 
 async function lrsCopy() {
-  let batchSize = 10;
+  let batchSize = 100;
 
   let query = {
     user_id: { $nin: ['0', '-1'] },
@@ -24,35 +24,35 @@ async function lrsCopy() {
   while (currentOffset < totalCount) {
     let docs = await activities.find(query).skip(currentOffset).limit(batchSize).toArray();
 
-    // try {
-    //   let statements = await lrsService.saveActivities(docs, progressBar);
-    // } catch (saveErr) {
-    //   try {
-    //     // try to parse some JSON in string
-    //     let { warnings } = JSON.parse(saveErr.message);
-    //     let warnIds = warnings.map((w) => w.match(/statements\.([0-9]+)/)[1]).map((i) => docs[i]._id);
-    //     console.info(`could not save statements for activities ${warnIds}`);
-    //   } catch (parseError) {
-    //     // throw original, unknown error
-    //     throw saveErr;
-    //   }
-    // }
-
-    for (let doc of docs) {
+    try {
+      await lrsService.saveActivities(docs, progressBar);
+    } catch (saveErr) {
       try {
-        await lrsService.saveActivity(doc);
-      } catch (saveErr) {
-        console.info(`failed to save activity ${doc._id}`);
-        try {
-          // try to parse some JSON in string
-          let { statement } = JSON.parse(saveErr.message);
-          console.info(statement);
-        } catch (parseError) {
-          console.info(saveErr.message);
-        }
+        // try to parse some JSONs in strings
+        let { statements } = JSON.parse(saveErr.message);
+        console.info('failed to save statements');
+        console.info(statements);
+      } catch (parseError) {
+        // throw original, unknown error
+        throw saveErr;
       }
-      progressBar.tick();
     }
+
+    // for (let doc of docs) {
+    //   try {
+    //     await lrsService.saveActivity(doc);
+    //   } catch (saveErr) {
+    //     console.info(`failed to save activity ${doc._id}`);
+    //     try {
+    //       // try to parse some JSON in string
+    //       let { statement } = JSON.parse(saveErr.message);
+    //       console.info(statement);
+    //     } catch (parseError) {
+    //       console.info(saveErr.message);
+    //     }
+    //   }
+    //   progressBar.tick();
+    // }
 
     currentOffset += batchSize;
   }
