@@ -42,21 +42,13 @@ async function lrsCopy() {
       try {
         await lrsService.saveActivity(doc);
       } catch (saveErr) {
+        console.info(`failed to save activity ${doc._id}`);
         try {
           // try to parse some JSON in string
           let { statement } = JSON.parse(saveErr.message);
-          console.info(`failed to save activity ${doc._id}`);
           console.info(statement);
         } catch (parseError) {
-          // throw original, unknown error
-          if (saveErr.message.startsWith('could not find')) {
-            // it's something we can safely skip
-            console.info(`${saveErr.message}`);
-          } else {
-            // throw original, unknown error
-            console.info(`stopped at ${progressBar.curr}`);
-            throw saveErr;
-          }
+          console.info(saveErr.message);
         }
       }
       progressBar.tick();
