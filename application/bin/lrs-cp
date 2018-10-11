@@ -8,7 +8,7 @@ const db = require('../database/helper');
 const lrsService = require('../services/lrs');
 
 async function lrsCopy() {
-  let batchSize = 50;
+  let batchSize = 10;
 
   let query = {
     user_id: { $nin: ['0', '-1'] },
@@ -22,9 +22,21 @@ async function lrsCopy() {
   let progressBar = new ProgressBar('copying :current out of :total activities (ETA: :eta sec) [:bar] :percent', { total: totalCount });
 
   while (currentOffset < totalCount) {
-    let docs = await activities.find(query).sort({timestamp: 1}).skip(currentOffset).limit(batchSize).toArray();
+    let docs = await activities.find(query).skip(currentOffset).limit(batchSize).toArray();
 
-    await lrsService.saveActivities(docs, progressBar);
+    try {
+      let statements = await lrsService.saveActivities(docs, progressBar);
+    } catch (saveErr) {
+      try {
+        // try to parse some JSON in string
+        let { warnings } = JSON.parse(saveErr.message);
+        let warnIds = warnings.map((w) => w.match(/statements\.([0-9]+)/)[1]).map((i) => docs[i]._id);
+        console.warn(`\ncould not save statements for activities ${warnIds}`);
+      } catch (parseError) {
+        // throw original, unknown error
+        throw saveErr;
+      }
+    }
 
     // for (let doc of docs) {
     //   try {
