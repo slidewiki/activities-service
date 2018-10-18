@@ -76,6 +76,8 @@ module.exports = function(server) {
           user_id: Joi.string(),
           content_id: Joi.string(),
           content_kind: Joi.string().valid('deck', 'slide', 'group'),
+          parent_content_id: Joi.string(),
+          top_parent_content_id: Joi.string(),
           content_name: Joi.string().allow(''),
           content_owner_id: Joi.string(),
           translation_info: Joi.object().keys({
@@ -150,6 +152,8 @@ module.exports = function(server) {
             user_id: Joi.string(),
             content_id: Joi.string(),
             content_kind: Joi.string().valid('deck', 'slide', 'group'),
+            parent_content_id: Joi.string(),
+            top_parent_content_id: Joi.string(),
             content_name: Joi.string().allow(''),
             content_owner_id: Joi.string(),
             translation_info: Joi.object().keys({
