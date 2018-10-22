@@ -40,6 +40,9 @@ function createNotifications(notificationDataArray) {
       subscribed_user_ids: notificationData.subscribed_user_ids,
       activity_id: activity.id
     };
+    if (activity.content_root_id) {
+      notification.content_root_id = activity.content_root_id;
+    }
     notifications.push(notification);
   });
 
