@@ -64,7 +64,14 @@ const self = module.exports = {
           },
         };
       });
-      context.contextActivities = {category: categories};
+      context.contextActivities = {
+        category: categories,
+        parent: [{
+          objectType: 'Activity',
+          id: ${Microservices.platform.uri}/deck/${activity.content_root_id}
+        }]
+      };
+
     }
     return context;
   },
