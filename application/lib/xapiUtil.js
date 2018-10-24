@@ -68,7 +68,7 @@ const self = module.exports = {
         category: categories,
         parent: [{
           objectType: 'Activity',
-          id: ${Microservices.platform.uri}/deck/${activity.content_root_id}
+          id: `${Microservices.platform.uri}/deck/${activity.content_root_id}`,
         }]
       };
 
