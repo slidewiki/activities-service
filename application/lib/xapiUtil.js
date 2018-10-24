@@ -50,9 +50,11 @@ const self = module.exports = {
       language: activity.content.language,
     };
 
+    let categories, parents;
+
     let tags = activity.content.tags;
     if (tags && tags.length > 0) {
-      let categories = tags.map((tag) => {
+      categories = tags.map((tag) => {
         return {
           id: `${Microservices.platform.uri}/deckfamily/${tag.tagName}`,
           objectType: 'Activity',
@@ -64,15 +66,25 @@ const self = module.exports = {
           },
         };
       });
-      context.contextActivities = {
-        category: categories,
-        parent: [{
-          objectType: 'Activity',
-          id: `${Microservices.platform.uri}/deck/${activity.content_root_id}`,
-        }]
-      };
-
     }
+
+    if (activity.content_root_id) {
+      parents = [{
+        objectType: 'Activity',
+        id: `${Microservices.platform.uri}/deck/${activity.content_root_id}`,
+      }];
+    }
+
+    if (categories || parents) {
+      context.contextActivities = {};
+      if (categories) {
+        context.contextActivities.category = categories;
+      }
+      if (parents) {
+        context.contextActivities.parent = parents;
+      }
+    }
+
     return context;
   },
 
