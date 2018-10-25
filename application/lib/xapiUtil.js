@@ -68,7 +68,7 @@ const self = module.exports = {
       });
     }
 
-    if (activity.content_root_id && (activity.content_kind !== 'deck' || activity.content_id !== activity.content_root_id)) {
+    if (activity.content_root_id) {
       parents = [{
         objectType: 'Activity',
         id: `${Microservices.platform.uri}/deck/${activity.content_root_id}`,
