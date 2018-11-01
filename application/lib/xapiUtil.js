@@ -52,7 +52,8 @@ const self = module.exports = {
 
     let categories, parents;
 
-    let tags = activity.content.tags;
+    // read tags from path if available, otherwise just the tags
+    let tags = activity.content.pathTags || activity.content.tags;
     if (tags && tags.length > 0) {
       categories = tags.map((tag) => {
         return {
@@ -60,7 +61,7 @@ const self = module.exports = {
           objectType: 'Activity',
           definition: {
             name: {
-              en: tag.defaultName
+              en: tag.defaultName || tag.tagName,
             },
             type: 'http://id.tincanapi.com/activitytype/tag',
           },
