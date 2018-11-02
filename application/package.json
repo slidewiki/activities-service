@@ -12,7 +12,7 @@
   "main": "server.js",
   "scripts": {
     "clean": "rm -R ./node_modules/ ./coverage/",
-    "lint": "eslint -c .eslintrc \"./**/*.js\"",
+    "lint": "eslint -c .eslintrc \"./**/*.js\" bin/*",
     "test": "NODE_ENV=test mocha ./tests/*.js",
     "test:unit": "NODE_ENV=test mocha ./tests/unit_*.js",
     "test:integration": "NODE_ENV=test mocha ./tests/integration_*.js",
@@ -37,6 +37,7 @@
     "inert": "^4.2.0",
     "joi": "^10.6.0",
     "mongodb": "^2.2.28",
+    "progress": "^2.0.1",
     "request": "^2.79.0",
     "request-promise-native": "^1.0.3",
     "tincanjs": "^0.50.0",

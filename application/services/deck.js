@@ -28,6 +28,10 @@ const self = module.exports = {
       delete item.revisions;
 
       return item;
+    }).catch((err) => {
+      // return nothing if not found
+      if (err.statusCode === 404) return;
+      throw new Error(`could not read ${kind} ${id}`);
     });
 
   },
