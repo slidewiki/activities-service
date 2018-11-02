@@ -1,6 +1,7 @@
 'use strict';
 
 const Microservices = require('../configs/microservices');
+const util = require('./util');
 
 const self = module.exports = {
 
@@ -31,8 +32,14 @@ const self = module.exports = {
   },
 
   object: function (activity) {
+    let id = Microservices.platform.uri;
+    if (activity.content_root_id) {
+      id += `/deck/${activity.content_root_id}`;
+    }
+    id += `/${activity.content_kind}/${activity.content_id}`;
+
     return {
-      id: `${Microservices.platform.uri}/${activity.content_kind}/${activity.content_id}`,
+      id,
       definition: {
         name: {
           en: activity.content.title,
@@ -69,10 +76,17 @@ const self = module.exports = {
       });
     }
 
-    if (activity.content_root_id) {
+    let rootRef = util.parseIdentifier(activity.content_root_id);
+    if (rootRef) {
       parents = [{
+        id: `${Microservices.platform.uri}/deck/${rootRef.id}`,
         objectType: 'Activity',
-        id: `${Microservices.platform.uri}/deck/${activity.content_root_id}`,
+        definition: {
+          type: 'http://id.tincanapi.com/activitytype/slide-deck',
+          extensions: {
+            'http://schema.org/version': rootRef.revision,
+          },
+        },
       }];
     }
 
