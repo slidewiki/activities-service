@@ -12,22 +12,13 @@ const self = module.exports = {
 
     // all activities share some deck/user info
     // let's populate missing stuff here beforing getting deeper...
-    return deckService.fetchContentItem(activity.content_kind, activity.content_id)
+    return deckService.fetchContentItem(activity.content_kind, activity.content_id, activity.content_root_id)
       .then((item) => {
         if (!item) {
           throw new Error(`could not find ${activity.content_kind} ${activity.content_id} for activity ${activity._id}`);
         }
 
         activity.content = item;
-
-        // TODO these should be removed after we have a sane deck/slide response model
-        if (item.revisions && item.revisions[0]) {
-          Object.assign(activity.content, item.revisions[0]);
-        }
-        activity.content.id = activity.content._id;
-
-        delete activity.content._id;
-        delete activity.content.revisions;
 
         activity.user = {};
 

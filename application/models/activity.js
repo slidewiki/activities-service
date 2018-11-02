@@ -32,6 +32,9 @@ const activity = {
       type: 'string',
       enum: ['deck', 'slide', 'group']
     },
+    content_root_id: {
+      type: 'string'
+    },
     content_name: {
       type: 'string'
     },
