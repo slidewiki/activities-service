@@ -2,7 +2,6 @@
 
 const boom = require('boom');
 
-const TinCan = require('tincanjs');
 const xapi = require('../xapiUtil');
 
 module.exports = {
@@ -13,18 +12,16 @@ module.exports = {
       throw boom.badData(`Unsupported reaction type: ${activity.react_type}`);
     }
 
-    let statementCfg = xapi.prepareStatement(activity);
+    let statement = xapi.prepareStatement(activity);
 
-    statementCfg.verb = {
+    statement.verb = {
       id: 'https://w3id.org/xapi/acrossx/verbs/liked',
       display: {
         en: 'liked',
       },
     };
 
-    let statement = new TinCan.Statement(statementCfg);
     return statement;
-
   },
 
 };

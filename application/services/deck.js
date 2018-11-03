@@ -36,4 +36,15 @@ const self = module.exports = {
 
   },
 
+  fetchContentItemRoots: function(kind, id) {
+    return rp.get({
+      uri: `${Microservices.deck.uri}/${kind}/${id}/rootDecks`,
+      json: true,
+    }).catch((err) => {
+      // return nothing if not found
+      if (err.statusCode === 404) return;
+      throw new Error(`could not read ${kind} ${id}`);
+    });
+  },
+
 };

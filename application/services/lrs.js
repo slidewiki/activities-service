@@ -11,28 +11,57 @@ const self = module.exports = {
     return getLRS() !== null;
   },
 
-  saveActivities: async function(activities, ticker) {
+  getStatement: async function(activity, credentials) {
+    // check if user is missing
+    if (activity.user_id === '0' || activity.user_id === '-1') return;
+    return transforms.transform(activity, credentials);
+  },
+
+  saveActivity: async function(activity, credentials) {
     if (!self.isAvailable()) {
       throw new Error('LRS connection is not available');
     }
 
-    let statements = [];
-    for (let activity of activities) {
-      ticker.tick();
-      try {
-        let statement = await transforms.transform(activity);
-        if (!statement) {
-          // TODO log warning
-          continue;
-        }
-        statements.push(statement);
-      } catch (err) {
-        console.info(`failed to create statement for activity ${activity._id}`);
-        console.info(err.message);
-      }
+    let statement = await self.getStatement(activity, credentials);
+    // console.log(statement);
+
+    if (!statement) {
+      throw boom.badData(`could not create an lrs statement for activity: ${activity._id} of type: ${activity.activity_type}`);
     }
 
-    if (!statements.length) return statements;
+    return new Promise((resolve, reject) => {
+      getLRS().saveStatement(statement, {
+        callback: (httpErrorCode, xhr) => {
+          if (httpErrorCode !== null) {
+            let errMessage = {};
+            if (xhr !== null) {
+              let details;
+              try {
+                details = JSON.parse(xhr.responseText);
+              } catch (err) {
+                // could not parse the details as JSON, will include the message as-is
+              }
+
+              errMessage.message = details && details.message || xhr.responseText;
+            } else {
+              // nothing more specific other than the error code
+              errMessage.message = `HTTP Error Code: ${httpErrorCode}`;
+            }
+            Object.assign(errMessage, {activity, statement});
+            return reject(new Error(JSON.stringify(errMessage)));
+          }
+
+          resolve(statement);
+        }
+
+      });
+
+    });
+
+  },
+
+  saveStatements: async function(statements) {
+    if (!statements || !statements.length) return statements;
 
     return new Promise((resolve, reject) => {
       getLRS().saveStatements(statements, {
@@ -58,50 +87,6 @@ const self = module.exports = {
 
           resolve(statements);
         }
-
-      });
-
-    });
-
-  },
-
-  saveActivity: function(activity, credentials) {
-    if (!self.isAvailable()) {
-      throw new Error('LRS connection is not available');
-    }
-
-    return transforms.transform(activity, credentials).then((statement) => {
-      // console.log(statement);
-      if (!statement) {
-        return Promise.reject(boom.badData(`could not create an lrs statement for activity: ${activity._id} of type: ${activity.activity_type}`));
-      }
-
-      return new Promise((resolve, reject) => {
-        getLRS().saveStatement(statement, {
-          callback: (httpErrorCode, xhr) => {
-            if (httpErrorCode !== null) {
-              let errMessage = {};
-              if (xhr !== null) {
-                let details;
-                try {
-                  details = JSON.parse(xhr.responseText);
-                } catch (err) {
-                  // could not parse the details as JSON, will include the message as-is
-                }
-
-                errMessage.message = details && details.message || xhr.responseText;
-              } else {
-                // nothing more specific other than the error code
-                errMessage.message = `HTTP Error Code: ${httpErrorCode}`;
-              }
-              Object.assign(errMessage, {activity, statement});
-              return reject(new Error(JSON.stringify(errMessage)));
-            }
-
-            resolve(statement);
-          }
-
-        });
 
       });
 

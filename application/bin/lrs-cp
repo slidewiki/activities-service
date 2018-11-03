@@ -18,25 +18,17 @@ async function lrsCopy() {
   let activities = await db.getCollection('activities');
   let totalCount = await activities.count(query);
 
+  // TODO expose to cli
+  let limit; // = 10;
+  if (limit && totalCount > limit) totalCount = limit;
+
+  if (batchSize > totalCount) batchSize = totalCount;
+
   let currentOffset = 0;
   let progressBar = new ProgressBar('copying :current out of :total activities (ETA: :eta sec) [:bar] :percent', { total: totalCount });
 
   while (currentOffset < totalCount) {
     let docs = await activities.find(query).skip(currentOffset).limit(batchSize).toArray();
-
-    try {
-      await lrsService.saveActivities(docs, progressBar);
-    } catch (saveErr) {
-      try {
-        // try to parse some JSONs in strings
-        let { statements } = JSON.parse(saveErr.message);
-        console.info('failed to save statements');
-        console.info(statements);
-      } catch (parseError) {
-        // throw original, unknown error
-        throw saveErr;
-      }
-    }
 
     // for (let doc of docs) {
     //   try {
@@ -53,6 +45,42 @@ async function lrsCopy() {
     //   }
     //   progressBar.tick();
     // }
+
+    let statements = [];
+    for (let doc of docs) {
+      progressBar.tick();
+
+      try {
+        let statement = await lrsService.getStatement(doc);
+        // unsupported, just skip
+        if (!statement) continue;
+
+        statements.push(statement);
+      } catch (err) {
+        console.info(`failed to create statement for activity ${doc._id}: ${err.message}`);
+        // also skip
+      }
+
+    }
+
+    if (statements.length) {
+      // save the batch
+
+      try {
+        await lrsService.saveStatements(statements);
+      } catch (saveErr) {
+        try {
+          // try to parse some JSONs in strings
+          let { statements } = JSON.parse(saveErr.message);
+          console.info('failed to save some statements in batch');
+          // console.info(statements);
+        } catch (parseError) {
+          // throw original, unknown error
+          throw saveErr;
+        }
+      }
+
+    }
 
     currentOffset += batchSize;
   }

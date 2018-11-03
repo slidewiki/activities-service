@@ -1,6 +1,5 @@
 'use strict';
 
-const TinCan = require('tincanjs');
 const Microservices = require('../../configs/microservices');
 
 const xapi = require('../xapiUtil');
@@ -11,8 +10,7 @@ module.exports = {
     let deleted = activity.delete_info;
     let platformPath = deleted.content_kind === 'deck' ? 'deck' : 'slideview';
 
-    let statement = new TinCan.Statement({
-
+    return {
       verb: {
         id: 'https://brindlewaye.com/xAPITerms/verbs/removed',
         display: {
@@ -34,10 +32,10 @@ module.exports = {
           type: deleted.content_kind === 'deck' ? 'http://id.tincanapi.com/activitytype/slide-deck' : 'http://id.tincanapi.com/activitytype/slide',
         },
       },
-      context: xapi.context(activity),
-    });
 
-    return statement;
+      context: xapi.context(activity),
+    };
+
   },
 
 };
