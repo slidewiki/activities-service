@@ -27,8 +27,9 @@ const self = module.exports = {
         }
         statements.push(statement);
       } catch (err) {
-        console.info(`failed to create statement for activity ${activity._id}`);
-        console.info(err.message);
+        // TODO properly catch not found errors only, log other errors
+        // console.info(`failed to create statement for activity ${activity._id}`);
+        // console.info(err.message);
       }
     }
 
