@@ -1,7 +1,5 @@
 'use strict';
 
-const boom = require('boom');
-
 const deckService = require('../services/deck');
 const userService = require('../services/user');
 
@@ -10,22 +8,17 @@ const self = module.exports = {
   transform: function(activity, credentials) {
     // first verify we support the activity
     let doTransform = getTransform(activity.activity_type);
-    if (!doTransform) return Promise.reject(boom.badData(`Unsupported activity type: ${activity.activity_type}`));
+    if (!doTransform) return Promise.resolve();
 
     // all activities share some deck/user info
     // let's populate missing stuff here beforing getting deeper...
-    return deckService.fetchContentItem(activity.content_kind, activity.content_id)
+    return deckService.fetchContentItem(activity.content_kind, activity.content_id, activity.content_root_id)
       .then((item) => {
-        activity.content = item;
-
-        // TODO these should be removed after we have a sane deck/slide response model
-        if (item.revisions && item.revisions[0]) {
-          Object.assign(activity.content, item.revisions[0]);
+        if (!item) {
+          throw new Error(`could not find ${activity.content_kind} ${activity.content_id} for activity ${activity._id}`);
         }
-        activity.content.id = activity.content._id;
 
-        delete activity.content._id;
-        delete activity.content.revisions;
+        activity.content = item;
 
         activity.user = {};
 
@@ -37,9 +30,17 @@ const self = module.exports = {
           });
         }
 
-        return userService.fetchUserInfo([parseInt(activity.user_id)]).then((users) => {
-          // just one user
-          Object.assign(activity.user, users[0]);
+        // just one user
+        let userId = parseInt(activity.user_id);
+        if (!userId) {
+          throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
+        }
+        return userService.fetchUserInfo([userId]).then(([user]) => {
+          if (!user || !user.username) {
+            throw new Error(`could not find user ${activity.user_id} for activity ${activity._id}`);
+          }
+
+          Object.assign(activity.user, user);
           return doTransform(activity);
         });
 
@@ -51,15 +52,23 @@ const self = module.exports = {
 
 // TODO support more activity types
 
-const transforms = {};
+const transforms = {
+  'add'     : require('./transforms/add'),
+  'comment' : require('./transforms/comment'),
+  'delete'  : require('./transforms/delete'),
+  'download': require('./transforms/download'),
+  'edit'    : require('./transforms/edit'),
+  'fork'    : require('./transforms/fork'),
+  'react'   : require('./transforms/react'),
+  'reply'   : require('./transforms/reply'),
+  'share'   : require('./transforms/share'),
+  'use'     : require('./transforms/use'),
+  'view'    : require('./transforms/view'),
+};
+
 function getTransform(activityType) {
-  let transform = transforms[activityType];
-  if (transform) return transform;
-
-  ({ transform } = require(`./transforms/${activityType}`));
-  transforms[activityType] = transform;
-
-  return transform;
+  let transformer = transforms[activityType];
+  if (transformer) return transformer.transform;
 }
 
 

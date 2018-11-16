@@ -1,6 +1,7 @@
 'use strict';
 
 const Microservices = require('../configs/microservices');
+const util = require('./util');
 
 const self = module.exports = {
 
@@ -10,6 +11,11 @@ const self = module.exports = {
       object: self.object(activity),
       context: self.context(activity)
     };
+
+    if (activity.timestamp) {
+      statementCfg.timestamp = activity.timestamp;
+    }
+
     return statementCfg;
   },
 
@@ -31,8 +37,14 @@ const self = module.exports = {
   },
 
   object: function (activity) {
+    let id = Microservices.platform.uri;
+    if (activity.content_root_id) {
+      id += `/deck/${activity.content_root_id}`;
+    }
+    id += `/${activity.content_kind}/${activity.content_id}`;
+
     return {
-      id: `${Microservices.platform.uri}/${activity.content_kind}/${activity.content_id}`,
+      id,
       definition: {
         name: {
           en: activity.content.title,
@@ -50,22 +62,49 @@ const self = module.exports = {
       language: activity.content.language,
     };
 
-    let tags = activity.content.tags;
+    let categories, parents;
+
+    // read tags from path if available, otherwise just the tags
+    let tags = activity.content.pathTags || activity.content.tags;
     if (tags && tags.length > 0) {
-      let categories = tags.map((tag) => {
+      categories = tags.map((tag) => {
         return {
           id: `${Microservices.platform.uri}/deckfamily/${tag.tagName}`,
           objectType: 'Activity',
           definition: {
             name: {
-              en: tag.defaultName
+              en: tag.defaultName || tag.tagName,
             },
             type: 'http://id.tincanapi.com/activitytype/tag',
           },
         };
       });
-      context.contextActivities = {category: categories};
     }
+
+    let rootRef = util.parseIdentifier(activity.content_root_id);
+    if (rootRef) {
+      parents = [{
+        id: `${Microservices.platform.uri}/deck/${rootRef.id}`,
+        objectType: 'Activity',
+        definition: {
+          type: 'http://id.tincanapi.com/activitytype/slide-deck',
+          extensions: {
+            'http://schema.org/version': rootRef.revision,
+          },
+        },
+      }];
+    }
+
+    if (categories || parents) {
+      context.contextActivities = {};
+      if (categories) {
+        context.contextActivities.category = categories;
+      }
+      if (parents) {
+        context.contextActivities.parent = parents;
+      }
+    }
+
     return context;
   },
 
