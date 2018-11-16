@@ -37,6 +37,9 @@ function createNotifications(notificationDataArray) {
       use_info: activity.use_info,
       react_type: activity.react_type,
       rate_type:  activity.rate_type,
+      fork_info: activity.fork_info,
+      delete_info: activity.delete_info,
+      move_info: activity.move_info,
       subscribed_user_ids: notificationData.subscribed_user_ids,
       activity_id: activity.id
     };
