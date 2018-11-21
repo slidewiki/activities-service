@@ -17,18 +17,15 @@ const objectid = {
 const currentEdition = {
     type: 'object',
     properties: {
-        current_edition_id: {
-            type: 'string'
-        },
         user_id: objectid,
-        slide_in_edition: {
+        slideInEdition: {
             type: 'string'
         },
         timestamp: {
             type: 'timestamp'
         }
     },
-    required: ['current_edition_id', 'user_id', 'slide_in_edition', 'timestamp']
+    required: ['user_id', 'slide_in_edition', 'timestamp']
 };
 
 //export
