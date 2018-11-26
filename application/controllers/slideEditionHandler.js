@@ -28,7 +28,7 @@ module.exports = {
   //Delete slideEdition with id id
   deleteSlideEdition: function(request, reply) {
     return slideEditionDB.delete(encodeURIComponent(request.payload.id)).then(() =>
-      reply({'msg': 'following is successfully deleted...'})
+      reply({'msg': 'Slide Edition is successfully deleted...'})
     ).catch((error) => {
       tryRequestLog(request, 'error', error);
       reply(boom.badImplementation());

@@ -9,6 +9,8 @@ const Joi = require('joi'),
   followHandlers = require('./controllers/followHandler'),
   slideEditionHandler = require('./controllers/slideEditionHandler');
 
+Joi.objectId = require('joi-objectid')(Joi);
+
 const fanout = require('./controllers/fanout');
 
 module.exports = function(server) {
@@ -343,11 +345,34 @@ module.exports = function(server) {
         }).requiredKeys('user_id', 'slide_in_edition', 'timestamp'),
         headers: Joi.object({
           '----jwt----': Joi.string().description('JWT header provided by /login')
-        }).unknown(),
+        }).unknown()
       },
       tags: ['api'],
-      description: 'Create a new following'
+      description: 'Create a new slide Edition being performed'
     }
+  });
+
+  server.route({
+    method: 'DELETE',
+    path: '/slideEdition/delete',
+    handler: slideEditionHandler.deleteSlideEdition,
+    config: {
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
+      validate: {
+        payload: Joi.object().keys({
+          id: Joi.objectId(),
+        }).requiredKeys('id'),
+        headers: Joi.object({
+          '----jwt----': Joi.string().description('JWT header provided by /login')
+        }).unknown()
+      },
+      tags: ['api'],
+      description: 'Delete a slide Edition'
+    }
+
   });
 
   server.route({
