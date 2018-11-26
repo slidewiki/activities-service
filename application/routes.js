@@ -6,7 +6,8 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 
 const Joi = require('joi'),
   handlers = require('./controllers/handler'),
-  followHandlers = require('./controllers/followHandler');
+  followHandlers = require('./controllers/followHandler'),
+  slideEditionHandler = require('./controllers/slideEditionHandler');
 
 const fanout = require('./controllers/fanout');
 
@@ -301,7 +302,7 @@ module.exports = function(server) {
         }).unknown(),
       },
       tags: ['api'],
-      description: 'Create a new following'
+      description: 'Create a new slide edition being performed.'
     }
   });
 
@@ -318,6 +319,49 @@ module.exports = function(server) {
       },
       tags: ['api'],
       description: 'Delete a following'
+    }
+  });
+
+  /*
+        Slide Edition-related routes.
+   */
+
+  server.route({
+    method: 'POST',
+    path: '/slideEdition/new',
+    handler: slideEditionHandler.newSlideEdition,
+    config: {
+      auth: {
+        mode: 'optional',
+        strategy: 'jwt'
+      },
+      validate: {
+        payload: Joi.object().keys({
+          user_id: Joi.string(),
+          slide_in_edition: Joi.string(),
+          timestamp: Joi.string(),
+        }).requiredKeys('user_id', 'slide_in_edition', 'timestamp'),
+        headers: Joi.object({
+          '----jwt----': Joi.string().description('JWT header provided by /login')
+        }).unknown(),
+      },
+      tags: ['api'],
+      description: 'Create a new following'
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/slideEdition/slide/{slide_id}',
+    handler: slideEditionHandler.getSlideEditionsBySlideId,
+    config: {
+      validate: {
+        params: {
+          slide_id: Joi.string().description('The id of the slide to check if it is being edited.')
+        }
+      },
+      tags: ['api'],
+      description: 'Get a list of editions being performed to a slide.'
     }
   });
 };
