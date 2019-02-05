@@ -5,9 +5,9 @@
 'use strict';
 
 const helper = require('./helper'),
-  slideEditionModel = require('../models/slideEdition.js'),
+  slideCurrentlyEditedModel = require('../models/slideCurrentlyEdited.js'),
   oid = require('mongodb').ObjectID,
-  collectionName = 'currentEditions';
+  collectionName = 'slideCurrentlyEdited';
 
 module.exports = {
   get: function(identifier) {
@@ -21,14 +21,14 @@ module.exports = {
   getSlideEditions: function(slideId) {
     return helper.connectToDatabase()
       .then((db) => db.collection(collectionName))
-      .then((col) => col.find({slide_in_edition: slideId}))
+      .then((col) => col.find({slideCurrentlyEdited: slideId}))
       .then((stream) => stream.toArray());
   },
 
   getSlideEditionsByUser: function(userId) {
     return helper.connectToDatabase()
       .then((db) => db.collection())
-      .then((col) => col.find({user_id: userId}))
+      .then((col) => col.find({userId: userId}))
       .then((stream) => stream.toArray());
   },
 
@@ -39,7 +39,7 @@ module.exports = {
       .then((col) => {
         let valid = false;
         try {
-          valid = slideEditionModel(slideEdition);
+          valid = slideCurrentlyEditedModel(slideEdition);
           if (!valid) {
             return slideEdition.errors;
           }

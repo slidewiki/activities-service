@@ -6,14 +6,14 @@
 'use strict';
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
-  slideEditionDB = require('../database/slideEditionDatabase'), //Database functions specific for slide editions
+  slideCurrentlyEditedDB = require('../database/slideCurrentlyEditedDatabase'), //Database functions specific for slide editions
   co = require('../common');
 
 
 module.exports = {
   //Create slide Edition with new id and payload or return INTERNAL_SERVER_ERROR
   newSlideEdition: function(request, reply) {
-    return slideEditionDB.insert(request.payload).then((inserted) => {
+    return slideCurrentlyEditedDB.insert(request.payload).then((inserted) => {
       if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
         throw inserted;
       else {
@@ -27,7 +27,7 @@ module.exports = {
 
   //Delete slideEdition with id id
   deleteSlideEdition: function(request, reply) {
-    return slideEditionDB.delete(encodeURIComponent(request.payload.id)).then(() =>
+    return slideCurrentlyEditedDB.delete(encodeURIComponent(request.payload.id)).then(() =>
       reply({'msg': 'Slide Edition is successfully deleted...'})
     ).catch((error) => {
       tryRequestLog(request, 'error', error);
@@ -37,7 +37,7 @@ module.exports = {
 
   //Get All slide editions from database with the slide_id in the request
   getSlideEditionsBySlideId: function(request, reply) {
-    return slideEditionDB.getSlideEditions(request.params.slide_id).then((slideEditions) => {
+    return slideCurrentlyEditedDB.getSlideEditions(request.params.slideCurrentlyEdited).then((slideEditions) => {
       slideEditions.forEach((slideEdition) => {
         co.rewriteID(slideEdition);
       });
@@ -50,11 +50,11 @@ module.exports = {
     });
   },
 
-  //Get All slide editions from database for the user_id in the request
+  //Get All slide editions from database for the userId in the request
   getSlideEditionsUser: function(request, reply) {
-    const user_id = request.params.user_id;
+    const userId = request.params.user_id;
 
-    return slideEditionDB.getSlideEditionsByUser(user_id).then((slideEditions) => {
+    return slideCurrentlyEditedDB.getSlideEditionsByUser(userId).then((slideEditions) => {
       slideEditions.forEach((slideEdition) => {
         co.rewriteID(slideEdition);
       });

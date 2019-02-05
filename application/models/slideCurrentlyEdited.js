@@ -15,19 +15,19 @@ const objectid = {
   minLength: 1
 };
 
-const currentEdition = {
+const slideCurrentlyEdited = {
   type: 'object',
   properties: {
-    user_id: objectid,
-    slide_in_edition: {
+    userId: objectid,
+    slideCurrentlyEdited: {
       type: 'string'
     },
     timestamp: {
       type: 'string'
     }
   },
-  required: ['user_id', 'slide_in_edition', 'timestamp']
+  required: ['userId', 'slideCurrentlyEdited', 'timestamp']
 };
 
 //export
-module.exports = ajv.compile(currentEdition);
+module.exports = ajv.compile(slideCurrentlyEdited);
