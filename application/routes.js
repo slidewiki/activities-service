@@ -7,7 +7,7 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 const Joi = require('joi'),
   handlers = require('./controllers/handler'),
   followHandlers = require('./controllers/followHandler'),
-  slideEditionHandler = require('./controllers/slideEditionHandler');
+  slideCurrentlyEdited = require('./controllers/slideCurrentlyEditedHandler');
 
 Joi.objectId = require('joi-objectid')(Joi);
 
@@ -330,8 +330,8 @@ module.exports = function(server) {
 
   server.route({
     method: 'POST',
-    path: '/slideEdition/new',
-    handler: slideEditionHandler.newSlideEdition,
+    path: '/slideCurrentlyEdited/new',
+    handler: slideCurrentlyEdited.newSlideEdition,
     config: {
       auth: {
         mode: 'optional',
@@ -339,23 +339,23 @@ module.exports = function(server) {
       },
       validate: {
         payload: Joi.object().keys({
-          user_id: Joi.string(),
-          slide_in_edition: Joi.string(),
+          userId: Joi.string(),
+          slideCurrentlyEdited: Joi.string(),
           timestamp: Joi.string(),
-        }).requiredKeys('user_id', 'slide_in_edition', 'timestamp'),
+        }).requiredKeys('userId', 'slideCurrentlyEdited', 'timestamp'),
         headers: Joi.object({
           '----jwt----': Joi.string().description('JWT header provided by /login')
         }).unknown()
       },
       tags: ['api'],
-      description: 'Create a new slide Edition being performed'
+      description: 'Create a new "slide currently edited" instance.'
     }
   });
 
   server.route({
     method: 'DELETE',
-    path: '/slideEdition/delete',
-    handler: slideEditionHandler.deleteSlideEdition,
+    path: '/slideCurrentlyEdited/delete',
+    handler: slideCurrentlyEdited.deleteSlideEdition,
     config: {
       auth: {
         mode: 'optional',
@@ -370,19 +370,19 @@ module.exports = function(server) {
         }).unknown()
       },
       tags: ['api'],
-      description: 'Delete a slide Edition'
+      description: 'Delete a slide currently edited instance'
     }
 
   });
 
   server.route({
     method: 'GET',
-    path: '/slideEdition/slide/{slide_id}',
-    handler: slideEditionHandler.getSlideEditionsBySlideId,
+    path: '/slideCurrentlyEdited/slide/{slideId}',
+    handler: slideCurrentlyEdited.getSlideEditionsBySlideId,
     config: {
       validate: {
         params: {
-          slide_id: Joi.string().description('The id of the slide to check if it is being edited.')
+          slideId: Joi.string().description('The id of the slide to check if it is being edited.')
         }
       },
       tags: ['api'],

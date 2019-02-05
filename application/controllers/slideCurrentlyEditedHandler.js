@@ -37,7 +37,7 @@ module.exports = {
 
   //Get All slide editions from database with the slide_id in the request
   getSlideEditionsBySlideId: function(request, reply) {
-    return slideCurrentlyEditedDB.getSlideEditions(request.params.slideCurrentlyEdited).then((slideEditions) => {
+    return slideCurrentlyEditedDB.getSlideEditions(request.params.slideId).then((slideEditions) => {
       slideEditions.forEach((slideEdition) => {
         co.rewriteID(slideEdition);
       });
