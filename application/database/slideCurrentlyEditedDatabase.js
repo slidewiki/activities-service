@@ -43,6 +43,8 @@ module.exports = {
           if (!valid) {
             return slideEdition.errors;
           }
+
+          slideEdition.timestamp = new Date(slideEdition.timestamp);
           return col.insertOne(slideEdition);
         } catch (e) {
           console.log('validation failed', e);

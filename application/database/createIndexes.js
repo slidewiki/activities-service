@@ -8,11 +8,17 @@ const helper = require('./helper');
 // it should always return a promise
 module.exports = function() {
 
-  return helper.getCollection('activities').then((activities) => {
+  let activitiesIndexes = helper.getCollection('activities').then((activities) => {
     return activities.createIndexes([
       { key: {'content_kind': 1, 'content_id': 1} },
       { key: {'activity_type': 1} },
     ]);
   });
 
+  let slideCurrentlyEditedIndexes = helper.getCollection('slideCurrentlyEdited').then((collection) => {
+    // Create TTL index on timestamp to delete records after the specified number of minutes.
+    return collection.createIndex({'timestamp': 1}, {'expireAfterSeconds': 60 * 30});
+  });
+
+  return Promise.all([activitiesIndexes, slideCurrentlyEditedIndexes]);
 };
