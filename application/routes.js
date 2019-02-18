@@ -304,7 +304,7 @@ module.exports = function(server) {
         }).unknown(),
       },
       tags: ['api'],
-      description: 'Create a new slide edition being performed.'
+      description: 'Create a new slide following.'
     }
   });
 
