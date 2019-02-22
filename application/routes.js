@@ -339,10 +339,9 @@ module.exports = function(server) {
       },
       validate: {
         payload: Joi.object().keys({
-          userId: Joi.string(),
           slideCurrentlyEdited: Joi.string(),
           timestamp: Joi.string(),
-        }).requiredKeys('userId', 'slideCurrentlyEdited', 'timestamp'),
+        }).requiredKeys('slideCurrentlyEdited', 'timestamp'),
         headers: Joi.object({
           '----jwt----': Joi.string().description('JWT header provided by /login')
         }).unknown()
@@ -364,10 +363,7 @@ module.exports = function(server) {
       validate: {
         payload: Joi.object().keys({
           id: Joi.objectId(),
-        }).requiredKeys('id'),
-        headers: Joi.object({
-          '----jwt----': Joi.string().description('JWT header provided by /login')
-        }).unknown()
+        }).requiredKeys('id')
       },
       tags: ['api'],
       description: 'Delete a slide currently edited instance'
