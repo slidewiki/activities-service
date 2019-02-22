@@ -25,10 +25,10 @@ module.exports = {
       .then((stream) => stream.toArray());
   },
 
-  getSlideEditionsByUser: function(userId) {
+  getSlideEditionsByUser: function(username) {
     return helper.connectToDatabase()
       .then((db) => db.collection())
-      .then((col) => col.find({userId: userId}))
+      .then((col) => col.find({username: username}))
       .then((stream) => stream.toArray());
   },
 

@@ -18,7 +18,7 @@ const objectid = {
 const slideCurrentlyEdited = {
   type: 'object',
   properties: {
-    userId: objectid,
+    username: objectid,
     slideCurrentlyEdited: {
       type: 'string'
     },
@@ -26,7 +26,7 @@ const slideCurrentlyEdited = {
       type: 'string'
     }
   },
-  required: ['userId', 'slideCurrentlyEdited', 'timestamp']
+  required: ['username', 'slideCurrentlyEdited', 'timestamp']
 };
 
 //export

@@ -13,7 +13,7 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
 module.exports = {
   //Create slide Edition with new id and payload or return INTERNAL_SERVER_ERROR
   newSlideEdition: function(request, reply) {
-    request.payload.userId = request.auth.credentials && request.auth.credentials.userid.toString();
+    request.payload.username= request.auth.credentials && request.auth.credentials.username;
     return slideCurrentlyEditedDB.insert(request.payload).then((inserted) => {
       if (co.isEmpty(inserted.ops) || co.isEmpty(inserted.ops[0]))
         throw inserted;
@@ -51,11 +51,11 @@ module.exports = {
     });
   },
 
-  //Get All slide editions from database for the userId in the request
+  //Get All slide editions from database for the username in the request
   getSlideEditionsUser: function(request, reply) {
-    const userId = request.params.user_id;
+    const username = request.params.username;
 
-    return slideCurrentlyEditedDB.getSlideEditionsByUser(userId).then((slideEditions) => {
+    return slideCurrentlyEditedDB.getSlideEditionsByUser(username).then((slideEditions) => {
       slideEditions.forEach((slideEdition) => {
         co.rewriteID(slideEdition);
       });
